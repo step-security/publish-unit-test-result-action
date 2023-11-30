@@ -146,5 +146,5 @@ runs:
   image: 'docker://ghcr.io/step-security.io/publish-unit-test-result-action:v1.0.0'
 
 branding:
-  icon: 'check-circle'
+  icon: 'check-square'
   color: 'green'
