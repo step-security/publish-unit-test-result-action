@@ -309,5 +309,5 @@ runs:
         key: ${{ steps.cache.outputs.cache-primary-key }}
 
 branding:
-  icon: 'check-circle'
+  icon: 'check-square'
   color: 'green'

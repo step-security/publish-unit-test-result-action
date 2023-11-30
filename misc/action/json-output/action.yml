@@ -58,5 +58,5 @@ runs:
       fi
 
 branding:
-  icon: 'check-circle'
+  icon: 'check-square'
   color: 'green'
