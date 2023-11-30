@@ -142,8 +142,8 @@ outputs:
     description: "Test results as JSON"
 
 runs:
-  using: "docker"
-  image: "docker://ghcr.io/step-security/publish-unit-test-result-action:v1.0.0"
+  using: 'docker'
+  image: 'docker://ghcr.io/step-security/publish-unit-test-result-action:v1.0.0
 
 branding:
   icon: "check-square"

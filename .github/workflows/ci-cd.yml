@@ -78,7 +78,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Extract action image and version
-        # we deploy from a specific commit on master (the one that mentions a new version the first time)
+        # we deploy from a specific commit on main (the one that mentions a new version the first time)
         # so we need to tell docker/metadata-action to extract docker tags from that version
         id: action
         run: |
