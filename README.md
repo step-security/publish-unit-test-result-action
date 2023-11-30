@@ -95,51 +95,6 @@ Check your favorite development and test environment for its JSON, TRX file or J
 |[sbt](https://www.scala-sbt.org/release/docs/Testing.html#Test+Reports)|Scala|:heavy_check_mark:| | | | |
 |Your favorite<br/>environment|Your favorite<br/>language|probably<br/>:heavy_check_mark:| | | | |
 
-## What is new in version 2
-
-<details>
-<summary>These changes have to be considered when moving from version 1 to version 2:</summary>
-
-### Default value for `check_name` changed
-Unless `check_name` is set in your config, the check name used to publish test results changes from `"Unit Test Results"` to `"Test Results"`.
-
-**Impact:**
-The check with the old name will not be updated once moved to version 2.
-
-**Workaround to get version 1 behaviour:**
-Add `check_name: "Unit Test Results"` to your config.
-
-### Default value for `comment_title` changed
-Unless `comment_title` or `check_name` are set in your config, the title used to comment on open pull requests changes from `"Unit Test Results"` to `"Test Results"`.
-
-**Impact:**
-Existing comments with the old title will not be updated once moved to version 2, but a new comment is created.
-
-**Workaround to get version 1 behaviour:**
-See workaround for `check_name`.
-
-### Modes `create new` and `update last` removed for option `comment_mode`
-The action always updates an earlier pull request comment, which is the exact behaviour of mode `update last`.
-The [configuration](#configuration) options `create new` and `update last` are therefore removed.
-
-**Impact:**
-An existing pull request comment is always updated.
-
-**Workaround to get version 1 behaviour:**
-Not supported.
-
-### Option `hiding_comments` removed
-The action always updates an earlier pull request comment, so hiding comments is not required anymore.
-
-### Option `comment_on_pr` removed
-Option `comment_on_pr` has been removed.
-
-**Workaround to get version 1 behaviour:**
-Set `comment_mode` to `always` (the default) or `off`.
-
-</details>
-
-
 ## Publishing test results
 
 Test results are published on GitHub at various ([configurable](#configuration)) places:
