@@ -6,7 +6,7 @@ import sys
 from glob import glob
 from pathlib import Path
 from typing import List, Optional, Union, Mapping, Tuple, Any, Iterable, Callable
-
+import requests
 import github
 import humanize
 import psutil
@@ -229,7 +229,22 @@ def action_fail_required(conclusion: str, action_fail: bool, action_fail_on_inco
            action_fail_on_inconclusive and conclusion == 'inconclusive'
 
 
+def validate_subscription():
+    API_URL = f"https://agent.api.stepsecurity.io/v1/github/{os.environ['GITHUB_REPOSITORY']}/actions/subscription"
+
+    try:
+        response = requests.get(API_URL, timeout=3)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        print("Subscription is not valid. Reach out to support@stepsecurity.io")
+        exit(1)
+    except requests.exceptions.RequestException:
+        print("Timeout or API not reachable. Continuing to next step.")
+
+
 def main(settings: Settings, gha: GithubAction) -> None:
+    validate_subscription()
+
     if settings.is_fork and not settings.job_summary:
         gha.warning(f'This action is running on a pull_request event for a fork repository. '
                     f'The only useful thing it can do in this situation is creating a job summary, which is disabled in settings. '
