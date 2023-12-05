@@ -1,12 +1,6 @@
-# GitHub Action to Publish Test Results
+# StepSecurity Maintained `publish-unit-test-result-action` Action
 
-![Arm badge](misc/badge-arm.svg)
-![Ubuntu badge](misc/badge-ubuntu.svg)
-![macOS badge](misc/badge-macos.svg)
-![Windows badge](misc/badge-windows.svg)
-![XML badge](misc/badge-xml.svg)
-![TRX badge](misc/badge-trx.svg)
-![JS badge](misc/badge-js.svg)
+Forked from [EnricoMi/publish-unit-test-result-action](https://github.com/EnricoMi/publish-unit-test-result-action)
 
 This [GitHub Action](https://github.com/actions) analyses test result files and
 publishes the results on GitHub. It supports [JSON (Dart, Mocha), TRX (MSTest, VS) and XML (JUnit, NUnit, XUnit) file formats](#generating-test-result-files),
