@@ -93,10 +93,12 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
+          exists='false'
           if docker manifest inspect '${{ steps.action.outputs.image }}'
           then
-            echo "exists=true" >>$GITHUB_OUTPUT
+            exists='true'
           fi
+          echo "exists=$exists" >>$GITHUB_OUTPUT
         shell: bash
 
   deploy:
@@ -108,6 +110,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
+      should_push: ${{ steps.check_conditions.outputs.should_push }}
     steps:
       - name: Docker meta
         id: docker-meta
@@ -137,8 +143,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check Conditions
+        id: check_conditions
+        run: |
+          should_push_value='false'
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            if [[ ${{ startsWith(github.ref, 'refs/heads/main') }} && '${{ needs.config-deploy.outputs.image-exists }}' != 'true' ]]; then
+              should_push_value='true'
+            fi
+          fi
+          echo "should_push=$should_push_value" >> "$GITHUB_OUTPUT"
+
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
+        id: build
         with:
           tags: ${{ steps.docker-meta.outputs.tags }}
           labels: ${{ steps.docker-meta.outputs.labels }}
@@ -146,14 +165,30 @@ jobs:
           pull: true
           # deploy image actions from commits pushed to main and
           # deploy Dockerfile actions from pushed version tags (no major versions)
-          push: |
-            ${{
-              github.event_name == 'push' && (
-                needs.config-deploy.outputs.image != 'Dockerfile' && startsWith(github.ref, 'refs/heads/main') && needs.config-deploy.outputs.image-exists != 'true' ||
-                needs.config-deploy.outputs.image == 'Dockerfile' && startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '.')
-              )
-            }}
-
+          push: ${{ steps.check_conditions.outputs.should_push }}
+      - name: Output image
+        id: image
+        run: |
+          # NOTE: Set the image as an output because the `env` context is not
+          # available to the inputs of a reusable workflow call.
+          image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+          echo "image=$image_name" >> "$GITHUB_OUTPUT"
+  
+  provenance:
+    needs: [deploy]
+    permissions:
+      actions: read # for detecting the Github Actions environment.
+      id-token: write # for creating OIDC tokens for signing.
+      packages: write # for uploading attestations.
+    if: ${{ needs.deploy.outputs.should_push == 'true' }}
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    with:
+      image: ${{ needs.deploy.outputs.image }}
+      digest: ${{ needs.deploy.outputs.digest }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}        
+  
   event_file:
     name: "Event File"
     runs-on: ubuntu-latest
