@@ -93,12 +93,12 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
+          exists='false'
           if docker manifest inspect '${{ steps.action.outputs.image }}'
           then
-            echo "exists=true" >>$GITHUB_OUTPUT
-          else
-            echo "exists=false" >>$GITHUB_OUTPUT
+            exists='true'
           fi
+          echo "exists=$exists" >>$GITHUB_OUTPUT
         shell: bash
 
   deploy:
@@ -147,8 +147,8 @@ jobs:
         id: check_conditions
         run: |
           should_push_value='false'
-          if [[ ${{ github.event_name }} == 'push' ]]; then
-            if [[ ${{ startsWith(github.ref, 'refs/heads/main') }} && ${{ !needs.config-deploy.outputs.image-exists }} ]]
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            if [[ ${{ startsWith(github.ref, 'refs/heads/main') }} && ${{ needs.config-deploy.outputs.image-exists }} != 'true' ]]; then
               should_push_value='true'
             fi
           fi
