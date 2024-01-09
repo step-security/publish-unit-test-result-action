@@ -168,6 +168,9 @@ jobs:
           push: ${{ steps.check_conditions.outputs.should_push }}
       - name: Output image
         id: image
+        env:
+          IMAGE_REGISTRY: ghcr.io
+          IMAGE_NAME: ${{ github.repository }}
         run: |
           # NOTE: Set the image as an output because the `env` context is not
           # available to the inputs of a reusable workflow call.
