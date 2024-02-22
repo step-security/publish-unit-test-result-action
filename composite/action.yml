@@ -214,7 +214,7 @@ runs:
       continue-on-error: true
       with:
         path: ${{ steps.os.outputs.pip-cache }}
-        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-df386fe4e04a72c96e140f0566a5c849
+        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-fcd2b5b32fb0298f9d93f6aa790e773b
 
     - name: Create virtualenv
       id: venv
