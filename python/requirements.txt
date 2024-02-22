@@ -1,7 +1,7 @@
 humanize==3.14.0
 junitparser==3.1.0
   future==0.18.3
-lxml==4.9.3
+lxml==5.1.0
 psutil==5.9.8
 PyGithub==2.1.1
   Deprecated==1.2.14
@@ -15,7 +15,7 @@ PyGithub==2.1.1
   requests==2.31.0
     certifi==2023.7.22
     charset-normalizer==3.3.2
-    idna==3.4
+    idna==3.6
     urllib3==2.0.7
-  typing_extensions==4.9.0
+  typing_extensions==4.7.1
   urllib3==2.0.7
