@@ -124,16 +124,10 @@ jobs:
     # do not build or deploy on forked repositories
     if: github.repository_owner == 'step-security'
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-    outputs:
-      image: ${{ steps.image.outputs.image }}
-      digest: ${{ steps.build.outputs.digest }}
-      should_push: ${{ steps.check_conditions.outputs.should_push }}
     steps:
       - name: Docker meta
         id: docker-meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/step-security/publish-unit-test-result-action
           flavor: |
