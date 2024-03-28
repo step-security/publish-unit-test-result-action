@@ -201,7 +201,7 @@ jobs:
         id: scan
         uses: crazy-max/ghaction-container-scan@v3
         with:
-          image: enricomi/publish-unit-test-result-action:latest
+          image: step-security/publish-unit-test-result-action:latest
           dockerfile: ./Dockerfile
           annotations: true
       - name: Upload SARIF artifact

@@ -181,7 +181,7 @@ runs:
     - name: Deprecation warning
       run: |
         # Print deprecation warning
-        echo "::warning::Running this action via 'uses: EnricoMi/publish-unit-test-result-action/composite@v2 is deprecated! For details, see: https://github.com/EnricoMi/publish-unit-test-result-action/tree/v2#running-as-a-composite-action"
+        echo "::warning::Running this action via 'uses: step-security/publish-unit-test-result-action/composite@v2 is deprecated! For details, see: https://github.com/step-security/publish-unit-test-result-action/tree/v2#running-as-a-composite-action"
       shell: bash
 
     - name: Check for Python3
@@ -259,7 +259,7 @@ runs:
         echo "Python that creates venv: $PYTHON_BIN"
 
         echo "Creating virtual environment"
-        if ! "$PYTHON_BIN" -m virtualenv enricomi-publish-action-venv && ! "$PYTHON_BIN" -m venv enricomi-publish-action-venv
+        if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv && ! "$PYTHON_BIN" -m venv step-security-publish-action-venv
         then
           echo "Looks like there is neither virtualenv nor venv package installed"
           if ! "$PYTHON_BIN" -m pip install $PIP_OPTIONS virtualenv && [ -n "$PIP_OPTIONS" ]
@@ -272,7 +272,7 @@ runs:
             fi
           fi
 
-          if ! "$PYTHON_BIN" -m virtualenv enricomi-publish-action-venv
+          if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv
           then
             echo "::error::Cannot create venv after installing virtualenv package"
             exit 1
@@ -282,9 +282,9 @@ runs:
         echo "Finding Python interpreter in venv"
         case "$RUNNER_OS" in
           Linux*|macOS*)
-            PYTHON_VENV="enricomi-publish-action-venv/bin/python";;
+            PYTHON_VENV="step-security-publish-action-venv/bin/python";;
           Windows*)
-            PYTHON_VENV="enricomi-publish-action-venv\\Scripts\\python";;
+            PYTHON_VENV="step-security-publish-action-venv\\Scripts\\python";;
         esac
         PYTHON_VENV="$("$PYTHON_VENV" -c 'import sys; print(sys.executable)')"
         echo "Python in venv: $PYTHON_VENV"

@@ -1,5 +1,5 @@
 name: 'Publish Test Results'
-author: 'EnricoMi'
+author: 'step-security'
 description: 'Publishes JUnit, NUnit, XUnit, TRX, JSON test results on GitHub for .NET, Dart, Java, JS, Jest, Mocha, Python, Scala, …'
 
 inputs:
@@ -194,7 +194,7 @@ runs:
       continue-on-error: true
       with:
         path: '~\AppData\Local\pip\Cache'
-        key: enricomi-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-e594996205319a7990b3a4ec677d10a3
+        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-e594996205319a7990b3a4ec677d10a3
 
     - name: Create virtualenv
       id: venv
@@ -206,7 +206,7 @@ runs:
         echo "Python that creates venv: $PYTHON_BIN"
 
         echo "Creating virtual environment"
-        if ! "$PYTHON_BIN" -m virtualenv enricomi-publish-action-venv && ! "$PYTHON_BIN" -m venv enricomi-publish-action-venv
+        if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv && ! "$PYTHON_BIN" -m venv step-security-publish-action-venv
         then
           echo "Looks like there is neither virtualenv nor venv package installed"
           if ! "$PYTHON_BIN" -m pip install --user virtualenv
@@ -219,7 +219,7 @@ runs:
             fi
           fi
 
-          if ! "$PYTHON_BIN" -m virtualenv enricomi-publish-action-venv
+          if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv
           then
             echo "::error::Cannot create venv after installing virtualenv package"
             exit 1
@@ -227,7 +227,7 @@ runs:
         fi
 
         echo "Finding Python interpreter in venv"
-        PYTHON_VENV="enricomi-publish-action-venv\\Scripts\\python"
+        PYTHON_VENV="step-security-publish-action-venv\\Scripts\\python"
         PYTHON_VENV="$("$PYTHON_VENV" -c 'import sys; print(sys.executable)')"
         echo "Python in venv: $PYTHON_VENV"
         echo "PYTHON_VENV=$PYTHON_VENV" >> "$GITHUB_ENV"
