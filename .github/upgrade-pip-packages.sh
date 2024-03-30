@@ -11,4 +11,3 @@ pip install pipdeptree
 pipdeptree --packages="$(sed -e "s/;.*//" -e "s/=.*//g" "$base/../python/requirements.txt" | paste -s -d ,)" --freeze > "$base/../python/requirements-$python_minor_version.txt"
 
 git diff "$base/../python/requirements-$python_minor_version.txt"
-
