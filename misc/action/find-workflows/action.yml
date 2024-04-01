@@ -1,4 +1,5 @@
 name: 'Find workflows'
+author: 'EnricoMi'
 description: 'A GitHub Action to find workflows matching a query'
 
 inputs:

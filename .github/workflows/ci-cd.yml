@@ -3,13 +3,13 @@ name: CI/CD
 on:
   push:
     branches:
-      - 'main*'
+      - 'master*'
       - 'devel-*'
     tags:
       - '*'
   pull_request:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '10 9 * * *'
   workflow_dispatch:
 permissions: {}
 
@@ -19,34 +19,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Check requirements.txt against requirements-direct.txt
+        uses: actions/checkout@v4
+      - name: Check requirements.txt
         run: |
-          (diff -w python/requirements-direct.txt python/requirements.txt || true) | (! grep -e "^<")
+          (diff -w <(grep -v "python_version >  '3.7'" python/requirements.txt | sed -e "s/;.*//") python/requirements-3.7.txt || true) | (! grep -e "^<")
+          (diff -w <(grep -v "python_version <= '3.7'" python/requirements.txt | sed -e "s/;.*//") python/requirements-post-3.7.txt || true) | (! grep -e "^<")
         shell: bash
       - name: Check for dependency updates
         continue-on-error: true
-        run:
-          .github/upgrade-pip-packages.sh
+        run: |
+          pip install tox
+          tox
+          git diff --exit-code
         shell: bash
 
   test-mac:
     name: "Test macOS"
     uses: "./.github/workflows/test-os.yml"
     with:
-      os: '["macos-11", "macos-12", "macos-13"]'
+      os: '["macos-11", "macos-12", "macos-13", "macos-14"]'
+      python-version: '["3.10", "3.11", "3.12", "installed"]'
+      include: >
+        [
+          {"os": "macos-11", "python-version": "3.7"},
+          {"os": "macos-11", "python-version": "3.8"},
+          {"os": "macos-11", "python-version": "3.9"},
+          {"os": "macos-12", "python-version": "3.8"},
+          {"os": "macos-12", "python-version": "3.9"},
+          {"os": "macos-13", "python-version": "3.8"},
+          {"os": "macos-13", "python-version": "3.9"},
+        ]
 
   test-lnx:
     name: "Test Ubuntu"
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["ubuntu-20.04", "ubuntu-22.04"]'
+      python-version: '["3.8", "3.9", "3.10", "3.11", "3.12", "installed"]'
+      include: '[{"os": "ubuntu-20.04", "python-version": "3.7"}]'
 
   test-win:
     name: "Test Windows"
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["windows-2019", "windows-2022"]'
+      python-version: '["3.8", "3.9", "3.10", "3.11", "3.12", "installed"]'
+      include: '[{"os": "windows-2019", "python-version": "3.7"}]'
 
   publish:
     name: "Publish"
@@ -66,7 +84,7 @@ jobs:
     name: Configure Deployment
     needs: [test-mac, test-lnx, test-win]
     # do not build or deploy on forked repositories
-    if: github.repository_owner == 'step-security'
+    if: github.repository_owner == 'EnricoMi'
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.action.outputs.image }}
@@ -75,10 +93,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Extract action image and version
-        # we deploy from a specific commit on main (the one that mentions a new version the first time)
+        # we deploy from a specific commit on master (the one that mentions a new version the first time)
         # so we need to tell docker/metadata-action to extract docker tags from that version
         id: action
         run: |
@@ -93,12 +111,10 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          exists='false'
           if docker manifest inspect '${{ steps.action.outputs.image }}'
           then
-            exists='true'
+            echo "exists=true" >>$GITHUB_OUTPUT
           fi
-          echo "exists=$exists" >>$GITHUB_OUTPUT
         shell: bash
 
   deploy:
@@ -106,20 +122,14 @@ jobs:
     needs: [publish, config-deploy]
 
     # do not build or deploy on forked repositories
-    if: github.repository_owner == 'step-security'
+    if: github.repository_owner == 'EnricoMi'
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-    outputs:
-      image: ${{ steps.image.outputs.image }}
-      digest: ${{ steps.build.outputs.digest }}
-      should_push: ${{ steps.check_conditions.outputs.should_push }}
     steps:
       - name: Docker meta
         id: docker-meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/step-security/publish-unit-test-result-action
+          images: ghcr.io/EnricoMi/publish-unit-test-result-action
           flavor: |
             latest=false
             prefix=v
@@ -131,73 +141,41 @@ jobs:
             type=semver,pattern={{version}},value=${{ needs.config-deploy.outputs.image-version }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check Conditions
-        id: check_conditions
-        run: |
-          should_push_value='false'
-          if [[ '${{ github.event_name }}' == 'push' ]]; then
-            if [[ ${{ startsWith(github.ref, 'refs/heads/main') }} && '${{ needs.config-deploy.outputs.image-exists }}' != 'true' ]]; then
-              should_push_value='true'
-            fi
-          fi
-          echo "should_push=$should_push_value" >> "$GITHUB_OUTPUT"
-
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        id: build
+        uses: docker/build-push-action@v5
         with:
           tags: ${{ steps.docker-meta.outputs.tags }}
           labels: ${{ steps.docker-meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           pull: true
-          # deploy image actions from commits pushed to main and
+          # deploy image actions from commits pushed to master and
           # deploy Dockerfile actions from pushed version tags (no major versions)
-          push: ${{ steps.check_conditions.outputs.should_push }}
-      - name: Output image
-        id: image
-        env:
-          IMAGE_REGISTRY: ghcr.io
-          IMAGE_NAME: ${{ github.repository }}
-        run: |
-          # NOTE: Set the image as an output because the `env` context is not
-          # available to the inputs of a reusable workflow call.
-          image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
-          echo "image=$image_name" >> "$GITHUB_OUTPUT"
-  
-  provenance:
-    needs: [deploy]
-    permissions:
-      actions: read # for detecting the Github Actions environment.
-      id-token: write # for creating OIDC tokens for signing.
-      packages: write # for uploading attestations.
-    if: ${{ needs.deploy.outputs.should_push == 'true' }}
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
-    with:
-      image: ${{ needs.deploy.outputs.image }}
-      digest: ${{ needs.deploy.outputs.digest }}
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}        
-  
+          push: |
+            ${{
+              github.event_name == 'push' && (
+                needs.config-deploy.outputs.image != 'Dockerfile' && startsWith(github.ref, 'refs/heads/master') && needs.config-deploy.outputs.image-exists != 'true' ||
+                needs.config-deploy.outputs.image == 'Dockerfile' && startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '.')
+              )
+            }}
+
   event_file:
     name: "Event File"
     runs-on: ubuntu-latest
     steps:
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Event File
           path: ${{ github.event_path }}
