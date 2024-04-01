@@ -184,6 +184,7 @@ class Test(unittest.TestCase):
                      check_name='check name',
                      comment_title='title',
                      comment_mode=comment_mode_always,
+                     check_run=True,
                      job_summary=True,
                      compare_earlier=True,
                      test_changes_limit=10,
@@ -233,6 +234,7 @@ class Test(unittest.TestCase):
             check_name=check_name,
             comment_title=comment_title,
             comment_mode=comment_mode,
+            check_run=check_run,
             job_summary=job_summary,
             compare_earlier=compare_earlier,
             pull_request_build=pull_request_build,
@@ -455,6 +457,15 @@ class Test(unittest.TestCase):
         self.do_test_get_settings(COMPARE_TO_EARLIER_COMMIT='True', expected=self.get_settings(compare_earlier=True))
         self.do_test_get_settings(COMPARE_TO_EARLIER_COMMIT='foo', expected=self.get_settings(compare_earlier=True), warning=warning, exception=RuntimeError)
         self.do_test_get_settings(COMPARE_TO_EARLIER_COMMIT=None, expected=self.get_settings(compare_earlier=True))
+
+    def test_get_settings_check_run(self):
+        warning = 'Option check_run has to be boolean, so either "true" or "false": foo'
+        self.do_test_get_settings(CHECK_RUN='false', expected=self.get_settings(check_run=False))
+        self.do_test_get_settings(CHECK_RUN='False', expected=self.get_settings(check_run=False))
+        self.do_test_get_settings(CHECK_RUN='true', expected=self.get_settings(check_run=True))
+        self.do_test_get_settings(CHECK_RUN='True', expected=self.get_settings(check_run=True))
+        self.do_test_get_settings(CHECK_RUN='foo', expected=self.get_settings(check_run=True), warning=warning, exception=RuntimeError)
+        self.do_test_get_settings(CHECK_RUN=None, expected=self.get_settings(check_run=True))
 
     def test_get_settings_job_summary(self):
         warning = 'Option job_summary has to be boolean, so either "true" or "false": foo'
@@ -970,7 +981,10 @@ class Test(unittest.TestCase):
 
     def test_parse_files(self):
         gha = mock.MagicMock()
-        settings = self.get_settings(files_glob='\n'.join([str(test_files_path / '**' / '*.xml'), str(test_files_path / '**' / '*.trx'), str(test_files_path / '**' / '*.json')]),
+        settings = self.get_settings(files_glob='\n'.join([str(test_files_path / '**' / '*.xml'),
+                                                           str(test_files_path / '**' / '*.trx'),
+                                                           str(test_files_path / '**' / '*.json'),
+                                                           "!" + str(test_files_path / '**' / '*.results.json')]),
                                      junit_files_glob=str(test_files_path / 'junit-xml' / '**' / '*.xml'),
                                      nunit_files_glob=str(test_files_path / 'nunit' / '**' / '*.xml'),
                                      xunit_files_glob=str(test_files_path / 'xunit' / '**' / '*.xml'),
@@ -1020,28 +1034,15 @@ class Test(unittest.TestCase):
         self.assertEqual([], gha.method_calls)
 
         self.assertEqual(145, actual.files)
-        if Version(sys.version.split(' ')[0]) < Version('3.9.0') and sys.platform.startswith('darwin') and \
-                (platform.mac_ver()[0].startswith("11.") or platform.mac_ver()[0].startswith("12.")):
-            # on macOS and below Python 3.9 we see one particular error
-            self.assertEqual(17, len(actual.errors))
-            self.assertEqual(731, actual.suites)
-            self.assertEqual(4109, actual.suite_tests)
-            self.assertEqual(214, actual.suite_skipped)
-            self.assertEqual(450, actual.suite_failures)
-            self.assertEqual(21, actual.suite_errors)
-            self.assertEqual(7956, actual.suite_time)
-            self.assertEqual(0, len(actual.suite_details))
-            self.assertEqual(4085, len(actual.cases))
-        else:
-            self.assertEqual(13, len(actual.errors))
-            self.assertEqual(735, actual.suites)
-            self.assertEqual(4117, actual.suite_tests)
-            self.assertEqual(214, actual.suite_skipped)
-            self.assertEqual(454, actual.suite_failures)
-            self.assertEqual(21, actual.suite_errors)
-            self.assertEqual(7957, actual.suite_time)
-            self.assertEqual(0, len(actual.suite_details))
-            self.assertEqual(4093, len(actual.cases))
+        self.assertEqual(17, len(actual.errors))
+        self.assertEqual(731, actual.suites)
+        self.assertEqual(4109, actual.suite_tests)
+        self.assertEqual(214, actual.suite_skipped)
+        self.assertEqual(450, actual.suite_failures)
+        self.assertEqual(21, actual.suite_errors)
+        self.assertEqual(7956, actual.suite_time)
+        self.assertEqual(0, len(actual.suite_details))
+        self.assertEqual(4085, len(actual.cases))
         self.assertEqual('commit', actual.commit)
 
         with io.StringIO() as string:
@@ -1055,7 +1056,11 @@ class Test(unittest.TestCase):
                 "::error::lxml.etree.XMLSyntaxError: Char 0x0 out of allowed range, line 33, column 16",
                 "::error file=NUnit-issue17521.xml::Error processing result file: Char 0x0 out of allowed range, line 33, column 16 (NUnit-issue17521.xml, line 33)",
                 "::error::lxml.etree.XMLSyntaxError: attributes construct error, line 5, column 109",
-                "::error file=NUnit-issue47367.xml::Error processing result file: attributes construct error, line 5, column 109 (NUnit-issue47367.xml, line 5)"
+                "::error file=NUnit-issue47367.xml::Error processing result file: attributes construct error, line 5, column 109 (NUnit-issue47367.xml, line 5)",
+                "::error file=NUnit-sec1752-file.xml::Error processing result file: Entity 'xxe' not defined, line 17, column 51 (NUnit-sec1752-file.xml, line 17)",
+                "::error::lxml.etree.XMLSyntaxError: Entity 'xxe' not defined, line 17, column 51",
+                "::error file=NUnit-sec1752-https.xml::Error processing result file: Entity 'xxe' not defined, line 17, column 51 (NUnit-sec1752-https.xml, line 17)",
+                "::error::lxml.etree.XMLSyntaxError: Entity 'xxe' not defined, line 17, column 51",
             ] * 2 + [
                 # these occur once, either from FILES and or from *_FILES options
                 "::error::Exception: File is empty.",
@@ -1073,14 +1078,6 @@ class Test(unittest.TestCase):
                 '::error file=malformed-json.json::Error processing result file: Unsupported file format: malformed-json.json',
                 '::error file=non-json.json::Error processing result file: Unsupported file format: non-json.json',
             ]
-            if Version(sys.version.split(' ')[0]) < Version('3.9.0') and sys.platform.startswith('darwin') and \
-                    (platform.mac_ver()[0].startswith("11.") or platform.mac_ver()[0].startswith("12.")):
-                expected.extend([
-                    '::error::lxml.etree.XMLSyntaxError: Failure to process entity xxe, line 17, column 51',
-                    '::error file=NUnit-sec1752-file.xml::Error processing result file: Failure to process entity xxe, line 17, column 51 (NUnit-sec1752-file.xml, line 17)',
-                    '::error::lxml.etree.XMLSyntaxError: Failure to process entity xxe, line 17, column 51',
-                    '::error file=NUnit-sec1752-https.xml::Error processing result file: Failure to process entity xxe, line 17, column 51 (NUnit-sec1752-https.xml, line 17)',
-                ] * 2)
             self.assertEqual(
                 sorted(expected),
                 sorted([re.sub(r'file=.*[/\\]', 'file=', re.sub(r'[(]file:.*/', '(', re.sub(r'format: .*[/\\]', 'format: ', line)))
@@ -1104,12 +1101,7 @@ class Test(unittest.TestCase):
                                              **options)
                 actual = parse_files(settings, gha)
 
-                if Version(sys.version.split(' ')[0]) < Version('3.9.0') and sys.platform.startswith('darwin') and \
-                        (platform.mac_ver()[0].startswith("11.") or platform.mac_ver()[0].startswith("12.")):
-                    # on macOS (below macOS 13) and Python below 3.9 we see one particular error
-                    self.assertEqual(363, len(actual.suite_details))
-                else:
-                    self.assertEqual(365, len(actual.suite_details))
+                self.assertEqual(363, len(actual.suite_details))
 
     def test_parse_files_no_matches(self):
         gha = mock.MagicMock()
@@ -1175,9 +1167,10 @@ class Test(unittest.TestCase):
                 GITHUB_EVENT_NAME='push',
                 GITHUB_REPOSITORY='repo',
                 EVENT_FILE=None,
-                FILES='\n'.join(str(path) for path in [test_files_path / '**' / '*.xml',
-                                                       test_files_path / '**' / '*.trx',
-                                                       test_files_path / '**' / '*.json']),
+                FILES='\n'.join(path for path in [str(test_files_path / '**' / '*.xml'),
+                                                  str(test_files_path / '**' / '*.trx'),
+                                                  str(test_files_path / '**' / '*.json'),
+                                                  "!" + str(test_files_path / '**' / '*.results.json')]),
                 JUNIT_FILES=str(test_files_path / 'junit-xml' / '**' / '*.xml'),
                 NUNIT_FILES=str(test_files_path / 'nunit' / '**' / '*.xml'),
                 XUNIT_FILES=str(test_files_path / 'xunit' / '**' / '*.xml'),
@@ -1196,16 +1189,9 @@ class Test(unittest.TestCase):
                 # Publisher.publish is expected to have been called with these arguments
                 results, cases, conclusion = m.call_args_list[0].args
                 self.assertEqual(145, results.files)
-                if Version(sys.version.split(' ')[0]) < Version('3.9.0') and sys.platform.startswith('darwin') and \
-                        (platform.mac_ver()[0].startswith("11.") or platform.mac_ver()[0].startswith("12.")):
-                    # on macOS and below Python 3.9 we see one particular error
-                    self.assertEqual(731, results.suites)
-                    self.assertEqual(731, len(results.suite_details))
-                    self.assertEqual(1811, len(cases))
-                else:
-                    self.assertEqual(735, results.suites)
-                    self.assertEqual(735, len(results.suite_details))
-                    self.assertEqual(1811, len(cases))
+                self.assertEqual(731, results.suites)
+                self.assertEqual(731, len(results.suite_details))
+                self.assertEqual(1811, len(cases))
                 self.assertEqual('failure', conclusion)
 
     def test_main_fork_pr_check_wo_summary(self):
@@ -1300,12 +1286,12 @@ class Test(unittest.TestCase):
 
     def test_action_fail(self):
         for action_fail, action_fail_on_inconclusive, expecteds in [
-            (False, False, [False] * 3),
-            (False, True, [True, False, False]),
-            (True, False, [False, False, True]),
-            (True, True, [True, False, True]),
+            (False, False, [False] * 4),
+            (False, True, [True, False, False, False]),
+            (True, False, [False, False, True, False]),
+            (True, True, [True, False, True, False]),
         ]:
-            for expected, conclusion in zip(expecteds, ['inconclusive', 'success', 'failure']):
+            for expected, conclusion in zip(expecteds, ['neutral', 'success', 'failure', 'unknown']):
                 with self.subTest(action_fail=action_fail, action_fail_on_inconclusive=action_fail_on_inconclusive, conclusion=conclusion):
                     actual = action_fail_required(conclusion, action_fail, action_fail_on_inconclusive)
                     self.assertEqual(expected, actual)
