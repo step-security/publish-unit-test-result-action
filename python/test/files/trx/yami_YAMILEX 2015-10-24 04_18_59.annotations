@@ -7,19 +7,9 @@
     'output': {
       'title': '2 fail, 21 skipped, 2 pass in 26s',
       'summary':
-        '25 tests\u2002\u2003\u2003\u205f\u20042 '
-        '[:heavy_check_mark:](https://github.com/step-security/publish-unit-te'
-        'st-result-action/blob/VERSION/README.md#the-symbols "passed tests")\u2003\u2003'
-        '26s '
-        '[:stopwatch:](https://github.com/step-security/publish-unit-test-resu'
-        'lt-action/blob/VERSION/README.md#the-symbols "duration of all tests")\n'
-        '\u205f\u20041 suites\u2003\u200321 '
-        '[:zzz:](https://github.com/step-security/publish-unit-test-result-act'
-        'ion/blob/VERSION/README.md#the-symbols "skipped / disabled tests")\n\u205f\u2004'
-        '1 files\u2004\u2002\u2003\u2003\u205f\u20042 '
-        '[:x:](https://github.com/step-security/publish-unit-test-result-actio'
-        'n/blob/VERSION/README.md#the-symbols "failed tests")\n\nResults for '
-        'commit commit s.\n\n'
+        '25 tests\u2002\u2003\u2003\u20072 :white_check_mark:\u2003\u200326s '
+        ':stopwatch:\n\u20071 suites\u2003\u200321 :zzz:\n\u20071 files\u2004\u2002\u2003\u2003\u2007'
+        '2 :x:\n\nResults for commit commit s.\n\n'
         '[test-results]:data:application/gzip;base64,H4sIAAAAAAAC/1WMOw6AIBAFr'
         '0KoLcRECy9jCErciGAWqIx3d/GD2O3M28zONZjJ856JinEfIWQYI8oAzhI2HTEtIW1N+8'
         'Lgo1LJfGKBLQmRjZZgfi8TokMyNRmMNhfTXQZvLnqXKHIXlzXl1hUCwXMxP0t+nB5bCu/'
@@ -30,7 +20,7 @@
           'start_line': 0,
           'end_line': 0,
           'annotation_level': 'warning',
-          'message': 'yami_YAMILEX 2015-10-24 04_18_59.trx\u2003[took 19s]',
+          'message': 'yami_YAMILEX_2015-10-24_04_18_59.trx\u2003[took 19s]',
           'title': 'EST_INTER_TEMPTest (Prueba_Sistema.SIARAlgorithmTest) failed',
           'raw_details':
             'El método de prueba '
@@ -52,7 +42,7 @@
           'start_line': 0,
           'end_line': 0,
           'annotation_level': 'warning',
-          'message': 'yami_YAMILEX 2015-10-24 04_18_59.trx\u2003[took 2s]',
+          'message': 'yami_YAMILEX_2015-10-24_04_18_59.trx\u2003[took 2s]',
           'title': 'EST_LAMB_TEMPTest (Prueba_Sistema.SIARAlgorithmTest) failed',
           'raw_details':
             'El método de prueba '
