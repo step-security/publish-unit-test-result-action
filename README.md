@@ -11,7 +11,7 @@ or ![ARM Linux](misc/badge-arm.svg) self-hosted runners:
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   if: always()
   with:
     files: |
@@ -27,7 +27,7 @@ and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners:
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action/composite@v1
+  uses: step-security/publish-unit-test-result-action/composite@v2
   if: always()
   with:
     files: |
@@ -271,7 +271,7 @@ The `json` output of the action can be accessed through the expression `steps.<i
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   id: test-results
   if: always()
   with:
@@ -482,7 +482,7 @@ jobs:
           path: artifacts
 
       - name: Publish Test Results
-        uses: step-security/publish-unit-test-result-action@v1
+        uses: step-security/publish-unit-test-result-action@v2
         with:
           files: "artifacts/**/*.xml"
 ```
@@ -594,7 +594,7 @@ jobs:
             path: artifacts
 
       - name: Publish Test Results
-        uses: step-security/publish-unit-test-result-action@v1
+        uses: step-security/publish-unit-test-result-action@v2
         with:
           commit: ${{ github.event.workflow_run.head_sha }}
           event_file: artifacts/Event File/event.json
@@ -627,7 +627,7 @@ Add the event name to `check_name` to avoid different event types overwriting ea
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   if: always()
   with:
     check_name: "Test Results (${{ github.event.workflow_run.event || github.event_name }})"
@@ -640,7 +640,7 @@ Disabling the pull request comment mode (`"off"`) for events other than `pull_re
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   if: always()
   with:
     # set comment_mode to "always" for pull_request event, set to "off" for all other event types
@@ -658,7 +658,7 @@ Disabling the pull request comment mode (`"off"`) for events other than `pull_re
 steps:
 - …
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   id: test-results
   if: always()
   with:
@@ -710,9 +710,9 @@ You can then use the badge via this URL: https://gist.githubusercontent.com/{use
 
 It is known that this action works best with relative paths (e.g. `test-results/**/*.xml`),
 but most absolute paths (e.g. `/tmp/test-results/**/*.xml`) require to use the composite variant
-of this action (`uses: step-security/publish-unit-test-result-action/composite@v1`).
+of this action (`uses: step-security/publish-unit-test-result-action/composite@v2`).
 
-If you have to use absolute paths with the non-composite variant of this action (`uses: step-security/publish-unit-test-result-action@v1`),
+If you have to use absolute paths with the non-composite variant of this action (`uses: step-security/publish-unit-test-result-action@v2`),
 you have to copy files to a relative path first, and then use the relative path:
 
 ```yaml
@@ -723,7 +723,7 @@ you have to copy files to a relative path first, and then use the relative path:
   shell: bash
 
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action@v1
+  uses: step-security/publish-unit-test-result-action@v2
   if: always()
   with:
      files: |
