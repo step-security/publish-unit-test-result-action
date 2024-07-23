@@ -200,6 +200,7 @@ runs:
             ;;
           macOS*)
             echo "pip-cache=~/Library/Caches/pip" >> $GITHUB_OUTPUT
+            echo "pip-options=--break-system-packages" >> $GITHUB_OUTPUT
             ;;
           Windows*)
             echo "pip-cache=~\\AppData\\Local\\pip\\Cache" >> $GITHUB_OUTPUT
