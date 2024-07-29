@@ -190,6 +190,7 @@ def parse_files(settings: Settings, gha: GithubAction) -> ParsedUnitTestResultsW
     elems = []
 
     # parse files, log the progress
+    # https://github.com/step-security/publish-unit-test-result-action/issues/304
     with progress_logger(items=len(files + junit_files + nunit_files + xunit_files + trx_files),
                          interval_seconds=10,
                          progress_template='Read {progress} files in {time}',
@@ -226,7 +227,7 @@ def log_parse_errors(errors: List[ParseError], gha: GithubAction):
 
 def action_fail_required(conclusion: str, action_fail: bool, action_fail_on_inconclusive: bool) -> bool:
     return action_fail and conclusion == 'failure' or \
-           action_fail_on_inconclusive and conclusion == 'inconclusive'
+           action_fail_on_inconclusive and conclusion == 'neutral'
 
 
 def validate_subscription():
@@ -281,7 +282,8 @@ def main(settings: Settings, gha: GithubAction) -> None:
     Publisher(settings, gh, gha).publish(stats, results.case_results, conclusion)
 
     if action_fail_required(conclusion, settings.action_fail, settings.action_fail_on_inconclusive):
-        gha.error(f'This action finished successfully, but test results have status {conclusion}.')
+        status = f"{conclusion} / inconclusive" if conclusion == "neutral" else conclusion
+        gha.error(f'This action finished successfully, but test results have status {status}.')
         sys.exit(1)
 
 
@@ -408,6 +410,7 @@ def get_settings(options: dict, gha: GithubAction) -> Settings:
         event = json.load(f)
 
     repo = get_var('GITHUB_REPOSITORY', options)
+    check_run = get_bool_var('CHECK_RUN', options, default=True)
     job_summary = get_bool_var('JOB_SUMMARY', options, default=True)
     comment_mode = get_var('COMMENT_MODE', options) or comment_mode_always
 
@@ -486,6 +489,7 @@ def get_settings(options: dict, gha: GithubAction) -> Settings:
         check_name=check_name,
         comment_title=get_var('COMMENT_TITLE', options) or check_name,
         comment_mode=comment_mode,
+        check_run=check_run,
         job_summary=job_summary,
         compare_earlier=get_bool_var('COMPARE_TO_EARLIER_COMMIT', options, default=True),
         pull_request_build=get_var('PULL_REQUEST_BUILD', options) or 'merge',

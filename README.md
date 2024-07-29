@@ -7,7 +7,7 @@ publishes the results on GitHub. It supports [JSON (Dart, Mocha), TRX (MSTest, V
 and runs on Linux, macOS and Windows.
 
 You can use this action with ![Ubuntu Linux](misc/badge-ubuntu.svg) runners (e.g. `runs-on: ubuntu-latest`)
-or ![ARM Linux](misc/badge-arm.svg) self-hosted runners:
+or ![ARM Linux](misc/badge-arm.svg) self-hosted runners that support Docker:
 
 ```yaml
 - name: Publish Test Results
@@ -22,12 +22,10 @@ or ![ARM Linux](misc/badge-arm.svg) self-hosted runners:
 
 See the [notes on running this action with absolute paths](#running-with-absolute-paths) if you cannot use relative test result file paths.
 
-Use this for ![macOS](misc/badge-macos.svg) (e.g. `runs-on: macos-latest`)
-and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners:
-
+Use this for ![macOS](misc/badge-macos.svg) (e.g. `runs-on: macos-latest`) runners:
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action/composite@v2
+  uses: step-security/publish-unit-test-result-action/macos@v2
   if: always()
   with:
     files: |
@@ -36,7 +34,31 @@ and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners:
       test-results/**/*.json
 ```
 
-See the [notes on running this action as a composite action](#running-as-a-composite-action) if you run it on Windows or macOS.
+… and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners:
+```yaml
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/windows@v2
+  if: always()
+  with:
+    files: |
+      test-results\**\*.xml
+      test-results\**\*.trx
+      test-results\**\*.json
+```
+
+For **self-hosted** Linux GitHub Actions runners **without Docker** installed, please use:
+```yaml
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/linux@v2
+  if: always()
+  with:
+    files: |
+      test-results/**/*.xml
+      test-results/**/*.trx
+      test-results/**/*.json
+```
+
+See the [notes on running this action as a non-Docker action](#running-as-a-non-docker-action).
 
 If you see the `"Resource not accessible by integration"` error, you have to grant additional [permissions](#permissions), or
 [setup the support for pull requests from fork repositories and branches created by Dependabot](#support-fork-repositories-and-dependabot-branches).
@@ -80,14 +102,59 @@ Check your favorite development and test environment for its JSON, TRX file or J
 
 |Test Environment |Language| JUnit<br/>XML | NUnit<br/>XML | XUnit<br/>XML | TRX<br/>file | JSON<br/>file |
 |-----------------|:------:|:---------:|:---------:|:---------:|:---:|:---:|
-|[Dart](https://github.com/dart-lang/test/blob/master/pkgs/test/doc/json_reporter.md)|Dart, Flutter| | | | | :heavy_check_mark: |
-|[Jest](https://jestjs.io/docs/configuration#default-reporter)|JavaScript|:heavy_check_mark:| | | | |
-|[Maven](https://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html)|Java, Scala, Kotlin|:heavy_check_mark:| | | | |
-|[Mocha](https://mochajs.org/#xunit)|JavaScript|:heavy_check_mark:| |[not xunit](https://github.com/mochajs/mocha/issues/4758)| | :heavy_check_mark: |
-|[MStest / dotnet](https://github.com/Microsoft/vstest-docs/blob/main/docs/report.md#syntax-of-default-loggers)|.Net|[:heavy_check_mark:](https://github.com/spekt/junit.testlogger#usage)|[:heavy_check_mark:](https://github.com/spekt/nunit.testlogger#usage)|[:heavy_check_mark:](https://github.com/spekt/xunit.testlogger#usage)|[:heavy_check_mark:](https://github.com/Microsoft/vstest-docs/blob/main/docs/report.md#syntax-of-default-loggers)| |
-|[pytest](https://docs.pytest.org/en/latest/how-to/output.html#creating-junitxml-format-files)|Python|:heavy_check_mark:| | | | |
-|[sbt](https://www.scala-sbt.org/release/docs/Testing.html#Test+Reports)|Scala|:heavy_check_mark:| | | | |
-|Your favorite<br/>environment|Your favorite<br/>language|probably<br/>:heavy_check_mark:| | | | |
+|[Dart](https://github.com/dart-lang/test/blob/master/pkgs/test/doc/json_reporter.md)|Dart, Flutter| | | | |:white_check_mark:|
+|[Jest](https://jestjs.io/docs/configuration#default-reporter)|JavaScript|:white_check_mark:| | | | |
+|[Maven](https://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html)|Java, Scala, Kotlin|:white_check_mark:| | | | |
+|[Mocha](https://mochajs.org/#xunit)|JavaScript|:white_check_mark:| |[not xunit](https://github.com/mochajs/mocha/issues/4758)| |:white_check_mark:|
+|[MStest / dotnet](https://github.com/Microsoft/vstest-docs/blob/main/docs/report.md#syntax-of-default-loggers)|.Net|[:white_check_mark:](https://github.com/spekt/junit.testlogger#usage)|[:white_check_mark:](https://github.com/spekt/nunit.testlogger#usage)|[:white_check_mark:](https://github.com/spekt/xunit.testlogger#usage)|[:white_check_mark:](https://github.com/Microsoft/vstest-docs/blob/main/docs/report.md#syntax-of-default-loggers)| |
+|[pytest](https://docs.pytest.org/en/latest/how-to/output.html#creating-junitxml-format-files)|Python|:white_check_mark:| | | | |
+|[sbt](https://www.scala-sbt.org/release/docs/Testing.html#Test+Reports)|Scala|:white_check_mark:| | | | |
+|Your favorite<br/>environment|Your favorite<br/>language|probably<br/>:white_check_mark:| | | | |
+
+## What is new in version 2
+
+<details>
+<summary>These changes have to be considered when moving from version 1 to version 2:</summary>
+
+### Default value for `check_name` changed
+Unless `check_name` is set in your config, the check name used to publish test results changes from `"Unit Test Results"` to `"Test Results"`.
+
+**Impact:**
+The check with the old name will not be updated once moved to version 2.
+
+**Workaround to get version 1 behaviour:**
+Add `check_name: "Unit Test Results"` to your config.
+
+### Default value for `comment_title` changed
+Unless `comment_title` or `check_name` are set in your config, the title used to comment on open pull requests changes from `"Unit Test Results"` to `"Test Results"`.
+
+**Impact:**
+Existing comments with the old title will not be updated once moved to version 2, but a new comment is created.
+
+**Workaround to get version 1 behaviour:**
+See workaround for `check_name`.
+
+### Modes `create new` and `update last` removed for option `comment_mode`
+The action always updates an earlier pull request comment, which is the exact behaviour of mode `update last`.
+The [configuration](#configuration) options `create new` and `update last` are therefore removed.
+
+**Impact:**
+An existing pull request comment is always updated.
+
+**Workaround to get version 1 behaviour:**
+Not supported.
+
+### Option `hiding_comments` removed
+The action always updates an earlier pull request comment, so hiding comments is not required anymore.
+
+### Option `comment_on_pr` removed
+Option `comment_on_pr` has been removed.
+
+**Workaround to get version 1 behaviour:**
+Set `comment_mode` to `always` (the default) or `off`.
+
+</details>
+
 
 ## Publishing test results
 
@@ -126,6 +193,8 @@ Those are highlighted in pull request comments to easily spot unintended test re
 
 ***Note:** This requires `check_run_annotations` to be set to `all tests, skipped tests`.*
 
+Comments can be disabled with `comment_mode: off`.
+
 ### Commit and pull request checks
 
 The checks section of a commit and related pull requests list a short summary (here `1 fail, 1 skipped, …`),
@@ -138,6 +207,8 @@ Commit checks:
 Pull request checks:
 
 ![pull request checks example](misc/github-pull-request-checks.png)
+
+Check runs can be disabled with `check_run: false`.
 
 ### Commit and pull request annotations
 
@@ -154,6 +225,8 @@ Use option `test_file_prefix` to add a prefix to, or remove a prefix from these 
 
 ***Note:** Only the first failure of a test is shown. If you want to see all failures, set `report_individual_runs: "true"`.*
 
+Check run annotations can be disabled with `ignore_runs: true`.
+
 ### GitHub Actions job summary
 
 The results are added to the job summary page of the workflow that runs this action:
@@ -164,11 +237,15 @@ In presence of failures or errors, the job summary links to the respective [chec
 
 ***Note:** Job summary requires [GitHub Actions runner v2.288.0](https://github.com/actions/runner/releases/tag/v2.288.0) or above.*
 
+Job summaries can be disabled with `job_summary: false`.
+
 ### GitHub Actions check summary of a commit
 
 Test results are published in the GitHub Actions check summary of the respective commit:
 
 ![checks comment example](misc/github-checks-comment.png)
+
+Check runs can be disabled with `check_run: false`.
 
 ## The symbols
 [comment]: <> (This heading is linked to from method get_link_and_tooltip_label_md)
@@ -177,7 +254,7 @@ The symbols have the following meaning:
 
 |Symbol|Meaning|
 |:----:|-------|
-|<img src="https://github.githubassets.com/images/icons/emoji/unicode/2714.png" height="20"/>|A successful test or run|
+|<img src="https://github.githubassets.com/images/icons/emoji/unicode/2714.png" height="20"/>  :white_check_mark:|A successful test or run|
 |<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f4a4.png" height="20"/>|A skipped test or run|
 |<img src="https://github.githubassets.com/images/icons/emoji/unicode/274c.png" height="20"/>|A failed test or run|
 |<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f525.png" height="20"/>|An erroneous test or run|
@@ -204,7 +281,7 @@ The list of most notable options:
 
 |Option|Default Value|Description|
 |:-----|:-----:|:----------|
-|`files`|_no default_|File patterns of test result files. Relative paths are known to work best, while the composite action [also works with absolute paths](#running-with-absolute-paths). Supports `*`, `**`, `?`, and `[]` character ranges. Use multiline string for multiple patterns. Patterns starting with `!` exclude the matching files. There have to be at least one pattern starting without a `!`.|
+|`files`|_no default_|File patterns of test result files. Relative paths are known to work best, while the non-Docker action [also works with absolute paths](#running-with-absolute-paths). Supports `*`, `**`, `?`, and `[]` character ranges. Use multiline string for multiple patterns. Patterns starting with `!` exclude the matching files. There have to be at least one pattern starting without a `!`.|
 |`check_name`|`"Test Results"`|An alternative name for the check result. Required to be unique for each instance in one workflow.|
 |`comment_title`|same as `check_name`|An alternative name for the pull request comment.|
 |`comment_mode`|`always`|The action posts comments to pull requests that are associated with the commit. Set to:<br/>`always` - always comment<br/>`changes` - comment when changes w.r.t. the target branch exist<br/>`changes in failures` - when changes in the number of failures and errors exist<br/>`changes in errors` - when changes in the number of (only) errors exist<br/>`failures` - when failures or errors exist<br/>`errors` - when (only) errors exist<br/>`off` - to not create pull request comments.|
@@ -236,6 +313,7 @@ The list of most notable options:
 |:-----|:-----:|:----------|
 |`time_unit`|`seconds`|Time values in the test result files have this unit. Supports `seconds` and `milliseconds`.|
 |`test_file_prefix`|`none`|Paths in the test result files should be relative to the git repository for annotations to work best. This prefix is added to (if starting with "+"), or remove from (if starting with "-") test file paths. Examples: "+src/" or "-/opt/actions-runner".|
+|`check_run`|`true`|Set to `true`, the results are published as a check run, but it may not be associated with the workflow that ran this action.|
 |`job_summary`|`true`|Set to `true`, the results are published as part of the [job summary page](https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/) of the workflow run.|
 |`compare_to_earlier_commit`|`true`|Test results are compared to results of earlier commits to show changes:<br/>`false` - disable comparison, `true` - compare across commits.'|
 |`test_changes_limit`|`10`|Limits the number of removed or skipped tests reported on pull request comments. This report can be disabled with a value of `0`.|
@@ -285,7 +363,7 @@ Here is an example JSON:
 ```json
 {
   "title": "4 parse errors, 4 errors, 23 fail, 18 skipped, 227 pass in 39m 12s",
-  "summary": "  24 files  ±0      4 errors  21 suites  ±0   39m 12s [:stopwatch:](https://github.com/step-security/publish-unit-test-result-action \"duration of all tests\") ±0s\n272 tests ±0  227 [:heavy_check_mark:](https://github.com/step-security/publish-unit-test-result-action \"passed tests\") ±0  18 [:zzz:](https://github.com/step-security/publish-unit-test-result-action \"skipped / disabled tests\") ±0  23 [:x:](https://github.com/step-security/publish-unit-test-result-action \"failed tests\") ±0  4 [:fire:](https://github.com/step-security/publish-unit-test-result-action \"test errors\") ±0 \n437 runs  ±0  354 [:heavy_check_mark:](https://github.com/step-security/publish-unit-test-result-action \"passed tests\") ±0  53 [:zzz:](https://github.com/step-security/publish-unit-test-result-action \"skipped / disabled tests\") ±0  25 [:x:](https://github.com/step-security/publish-unit-test-result-action \"failed tests\") ±0  5 [:fire:](https://github.com/step-security/publish-unit-test-result-action \"test errors\") ±0 \n\nResults for commit 11c02e56. ± Comparison against earlier commit d8ce4b6c.\n",
+  "summary": "  24 files  ±0      4 errors  21 suites  ±0   39m 12s [:stopwatch:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"duration of all tests\") ±0s\n272 tests ±0  227 [:white_check_mark:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"passed tests\") ±0  18 [:zzz:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"skipped / disabled tests\") ±0  23 [:x:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"failed tests\") ±0  4 [:fire:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"test errors\") ±0 \n437 runs  ±0  354 [:white_check_mark:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"passed tests\") ±0  53 [:zzz:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"skipped / disabled tests\") ±0  25 [:x:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"failed tests\") ±0  5 [:fire:](https://github.com/step-security/publish-unit-test-result-action/blob/v2.6.1/README.md#the-symbols \"test errors\") ±0 \n\nResults for commit 11c02e56. ± Comparison against earlier commit d8ce4b6c.\n",
   "conclusion": "success",
   "stats": {
     "files": 24,
@@ -314,6 +392,7 @@ Here is an example JSON:
     "reference_type": "earlier",
     "reference_commit": "d8ce4b6c62ebfafe1890c55bf7ea30058ebf77f2"
   },
+  "check_url": "https://github.com/step-security/publish-unit-test-result-action/runs/5397876970",
   "formatted": {
      "stats": {
         "duration": "2 352",
@@ -441,10 +520,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -453,7 +532,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Results (Python ${{ matrix.python-version }})
           path: pytest.xml
@@ -477,7 +556,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -518,7 +597,7 @@ event_file:
   runs-on: ubuntu-latest
   steps:
   - name: Upload
-    uses: actions/upload-artifact@v3
+    uses: actions/upload-artifact@v4
     with:
       name: Event File
       path: ${{ github.event_path }}
@@ -530,7 +609,7 @@ Adjust the value of `path` to fit your setup:
 ```yaml
 - name: Upload Test Results
   if: always()
-  uses: actions/upload-artifact@v3
+  uses: actions/upload-artifact@v4
   with:
     name: Test Results
     path: |
@@ -588,7 +667,7 @@ jobs:
 
     steps:
        - name: Download and Extract Artifacts
-         uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615
+         uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d
          with:
             run_id: ${{ github.event.workflow_run.id }}
             path: artifacts
@@ -651,6 +730,9 @@ Disabling the pull request comment mode (`"off"`) for events other than `pull_re
 
 ## Create a badge from test results
 
+Here is an example how to use the [JSON](#json-result) output of this action to create a badge like this:
+[![Test Results](https://gist.githubusercontent.com/EnricoMi/612cb538c14731f1a8fefe504f519395/raw/badge.svg)](https://gist.githubusercontent.com/EnricoMi/612cb538c14731f1a8fefe504f519395/raw/badge.svg)
+
 <details>
 <summary>Example workflow YAML</summary>
 
@@ -680,7 +762,7 @@ steps:
     esac
 
 - name: Create badge
-  uses: emibcn/badge-action@d6f51ff11b5c3382b3b88689ae2d6db22d9737d1
+  uses: emibcn/badge-action@808173dd03e2f30c980d03ee49e181626088eee8
   with:
     label: Tests
     status: '${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results.outputs.json ).conclusion }}'
@@ -692,7 +774,7 @@ steps:
   if: >
     github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'master' ||
     github.event_name != 'workflow_run' && github.ref == 'refs/heads/master'
-  uses: andymckay/append-gist-action@1fbfbbce708a39bd45846f0955ed5521f2099c6d
+  uses: andymckay/append-gist-action@6e8d64427fe47cbacf4ab6b890411f1d67c07f3e
   with:
     token: ${{ secrets.GIST_TOKEN }}
     gistURL: https://gist.githubusercontent.com/{user}/{id}
@@ -709,10 +791,14 @@ You can then use the badge via this URL: https://gist.githubusercontent.com/{use
 ## Running with absolute paths
 
 It is known that this action works best with relative paths (e.g. `test-results/**/*.xml`),
-but most absolute paths (e.g. `/tmp/test-results/**/*.xml`) require to use the composite variant
-of this action (`uses: step-security/publish-unit-test-result-action/composite@v2`).
+but most absolute paths (e.g. `/tmp/test-results/**/*.xml`) require to use the non-Docker variant
+of this action:
 
-If you have to use absolute paths with the non-composite variant of this action (`uses: step-security/publish-unit-test-result-action@v2`),
+    uses: step-security/publish-unit-test-result-action/linux@v2
+    uses: step-security/publish-unit-test-result-action/macos@v2
+    uses: step-security/publish-unit-test-result-action/windows@v2
+
+If you have to use absolute paths with the Docker variant of this action (`uses: step-security/publish-unit-test-result-action@v2`),
 you have to copy files to a relative path first, and then use the relative path:
 
 ```yaml
@@ -732,24 +818,41 @@ you have to copy files to a relative path first, and then use the relative path:
         test-results/**/*.json
 ```
 
-Using the non-composite variant of this action is recommended as it starts up much quicker.
+Using the Docker variant of this action is recommended as it starts up much quicker.
 
-## Running as a composite action
+## Running as a non-Docker action
 
-Running this action as a composite action allows to run it on various operating systems as it
-does not require Docker. The composite action, however, requires a Python3 environment to be setup
-on the action runner. All GitHub-hosted runners (Ubuntu, Windows Server and macOS) provide a suitable
-Python3 environment out-of-the-box.
+Running this action as below allows to run it on action runners that do not provide Docker:
+
+    uses: step-security/publish-unit-test-result-action/linux@v2
+    uses: step-security/publish-unit-test-result-action/macos@v2
+    uses: step-security/publish-unit-test-result-action/windows@v2
+
+These actions, however, require a Python3 environment to be setup on the action runner.
+All GitHub-hosted runners (Ubuntu, Windows Server and macOS) provide a suitable Python3 environment out-of-the-box.
 
 Self-hosted runners may require setting up a Python environment first:
 
 ```yaml
 - name: Setup Python
-  uses: actions/setup-python@v4
+  uses: actions/setup-python@v5
   with:
     python-version: 3.8
 ```
 
-Self-hosted runners for Windows require Bash shell to be installed. Easiest way to have one is by installing
-Git for Windows, which comes with Git BASH. Make sure that the location of `bash.exe` is part of the `PATH`
-environment variable seen by the self-hosted runner.
+Start-up of the action is faster with `virtualenv` or `venv` package installed.
+
+## Running as a composite action
+
+Running this action via:
+
+    uses: step-security/publish-unit-test-result-action/composite@v2
+
+is **deprecated**, please use an action appropriate for your operating system and shell:
+
+- Linux (Bash shell): `uses: step-security/publish-unit-test-result-action/linux@v2`
+- macOS (Bash shell): `uses: step-security/publish-unit-test-result-action/macos@v2`
+- Windows (PowerShell): `uses: step-security/publish-unit-test-result-action/windows@v2`
+- Windows (Bash shell): `uses: step-security/publish-unit-test-result-action/windows/bash@v2`
+
+These are non-Docker variations of this action. For details, see section ["Running as a non-Docker action"](#running-as-a-non-docker-action) above.
