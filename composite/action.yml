@@ -1,4 +1,5 @@
 name: 'Publish Test Results'
+
 description: 'Publishes JUnit, NUnit, XUnit, TRX, JSON test results on GitHub for .NET, Dart, Java, JS, Jest, Mocha, Python, Scala, …'
 
 inputs:
@@ -41,7 +42,7 @@ inputs:
     default: 'false'
     required: false
   files:
-    description: 'File patterns of test result files. Relative paths are known to work best, while the composite action also works with absolute paths. Supports "*", "**", "?", and "[]" character ranges. Use multiline string for multiple patterns. Patterns starting with "!" exclude the matching files. There have to be at least one pattern starting without a "!".'
+    description: 'File patterns of test result files. Relative paths are known to work best, while the non-Docker action also works with absolute paths. Supports "*", "**", "?", and "[]" character ranges. Use multiline string for multiple patterns. Patterns starting with "!" exclude the matching files. There have to be at least one pattern starting without a "!".'
     required: false
   junit_files:
     description: 'Deprecated, use "files" option instead.'
@@ -78,6 +79,10 @@ inputs:
   ignore_runs:
     description: 'Does not collect test run information from the test result files, which is useful for very large files. This disables any check run annotations.'
     default: 'false'
+    required: false
+  check_run:
+    description: 'Set to "true", the results are published as a check run, but it may not be associated with the workflow that ran this action.'
+    default: 'true'
     required: false
   job_summary:
     description: 'Set to "true", the results are published as part of the job summary page of the workflow run.'
@@ -146,76 +151,75 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Validate subscription
-      shell: bash
+    - name: Deprecation warning
       run: |
-        API_URL="https://agent.api.stepsecurity.io/v1/github/$GITHUB_REPOSITORY/actions/subscription"
+        # Print deprecation warning
+        echo "::warning::Running this action via 'uses: step-security/publish-unit-test-result-action/composite@v2 is deprecated! For details, see: https://github.com/step-security/publish-unit-test-result-action/tree/v2#running-as-a-composite-action"
+      shell: bash
 
-        # Set a timeout for the curl command (3 seconds)
-        RESPONSE=$(curl --max-time 3 -s -w "%{http_code}" "$API_URL" -o /dev/null) || true
-        CURL_EXIT_CODE=${?}
-
-        # Check if the response code is not 200
-        if [ $CURL_EXIT_CODE -ne 0 ] || [ "$RESPONSE" != "200" ]; then
-          if [ -z "$RESPONSE" ] || [ "$RESPONSE" == "000" ] || [ $CURL_EXIT_CODE -ne 0 ]; then
-            echo "Timeout or API not reachable. Continuing to next step."
-          else
-            echo "Subscription is not valid. Reach out to support@stepsecurity.io"
-            exit 1
-          fi
-        fi
     - name: Check for Python3
       id: python
       run: |
-        echo '##[group]Check for Python3'
+        # Check for Python3
+        echo '::group::Check for Python3'
+
         # we check version here just to execute `python3` with an argument
         # on Windows, there is a `python3.exe` that is a proxy to trigger installation from app store
         # command `which python3` finds that, but `python3 -V` does not return the version on stdout
-        if ! which python3 || [[ $(python3 -V) != *"python 3."* && $(python3 -V) != *"Python 3."* ]]
+        if ! which python3 || [[ "$(python3 -V)" != *"python 3."* && "$(python3 -V)" != *"Python 3."* ]]
         then
-          if ! which python || [[ $(python -V) != *"python 3."* && $(python -V) != *"Python 3."* ]]
+          if ! which python || [[ "$(python -V)" != *"python 3."* && "$(python -V)" != *"Python 3."* ]]
           then
             echo "::error::No python3 interpreter found. Please setup python before running this action. You could use https://github.com/actions/setup-python."
             exit 1
           fi
 
-          interpreter="$(which python)"
-          if [[ ! -e "${interpreter}3" ]]
-          then
-            mkdir -p "$RUNNER_TEMP/bin/"
-            ln -s "$interpreter" "$RUNNER_TEMP/bin/python3"
-            echo "$RUNNER_TEMP/bin" >> $GITHUB_PATH
-          fi
+          PYTHON_BIN="$(python -c 'import sys; print(sys.executable)')"
+        else
+          PYTHON_BIN="$(python3 -c 'import sys; print(sys.executable)')"
         fi
-        echo "version=$(python3 -V)" >> $GITHUB_OUTPUT
-        echo '##[endgroup]'
+
+        echo "Python that creates venv: $PYTHON_BIN"
+        echo "PYTHON_BIN=$PYTHON_BIN" >> "$GITHUB_ENV"
+
+        PYTHON_VERSION="$($PYTHON_BIN -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+        if [[ "$PYTHON_VERSION" == "3.7" ]]
+        then
+          echo "DEPENDENCIES_VERSION=3.7" >> "$GITHUB_ENV"
+        else
+          echo "DEPENDENCIES_VERSION=post-3.7" >> "$GITHUB_ENV"
+        fi
+        echo "version=$PYTHON_VERSION" >> "$GITHUB_OUTPUT"
+
+        echo '::endgroup::'
       shell: bash
 
     - name: Detect OS
       id: os
       run: |
+        # Detect OS
         case "$RUNNER_OS" in
           Linux*)
-            echo "pip-cache=~/.cache/pip" >> $GITHUB_OUTPUT
+            echo "pip-cache=~/.cache/pip" >> "$GITHUB_OUTPUT"
             ;;
           macOS*)
             echo "pip-cache=~/Library/Caches/pip" >> $GITHUB_OUTPUT
             echo "pip-options=--break-system-packages" >> $GITHUB_OUTPUT
             ;;
           Windows*)
-            echo "pip-cache=~\\AppData\\Local\\pip\\Cache" >> $GITHUB_OUTPUT
-            echo "pip-options=--user" >> $GITHUB_OUTPUT
+            echo "pip-cache=~\\AppData\\Local\\pip\\Cache" >> "$GITHUB_OUTPUT"
+            echo "pip-options=--user" >> "$GITHUB_OUTPUT"
             ;;
         esac
       shell: bash
 
     - name: Restore PIP packages cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       id: cache
       continue-on-error: true
       with:
         path: ${{ steps.os.outputs.pip-cache }}
-        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-df386fe4e04a72c96e140f0566a5c849
+        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-e594996205319a7990b3a4ec677d10a3
 
     - name: Create virtualenv
       id: venv
@@ -223,57 +227,61 @@ runs:
       env:
         PIP_OPTIONS: ${{ steps.os.outputs.pip-options }}
       run: |
-        echo '##[group]Create virtualenv'
-        # install virtualenv, if it is not yet installed
-        python3 -m pip install $PIP_OPTIONS virtualenv
-        python3 -m virtualenv step-security-publish-action-venv
-        # test activating virtualenv
+        # Create virtualenv
+        echo '::group::Create virtualenv'
+
+        echo "Python that creates venv: $PYTHON_BIN"
+
+        echo "Creating virtual environment"
+        if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv && ! "$PYTHON_BIN" -m venv step-security-publish-action-venv
+        then
+          echo "Looks like there is neither virtualenv nor venv package installed"
+          if ! "$PYTHON_BIN" -m pip install $PIP_OPTIONS virtualenv && [ -n "$PIP_OPTIONS" ]
+          then
+            echo "Installing virtualenv package with PIP options '$PIP_OPTIONS' failed, now trying without"
+            if ! "$PYTHON_BIN" -m pip install virtualenv
+            then
+              echo "::error::Installing virtualenv package failed"
+              exit 1
+            fi
+          fi
+
+          if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv
+          then
+            echo "::error::Cannot create venv after installing virtualenv package"
+            exit 1
+          fi
+        fi
+
+        echo "Finding Python interpreter in venv"
         case "$RUNNER_OS" in
           Linux*|macOS*)
-            source step-security-publish-action-venv/bin/activate;;
+            PYTHON_VENV="step-security-publish-action-venv/bin/python";;
           Windows*)
-            source step-security-publish-action-venv\\Scripts\\activate;;
+            PYTHON_VENV="step-security-publish-action-venv\\Scripts\\python";;
         esac
-        which python3
-        echo '##[endgroup]'
+        PYTHON_VENV="$("$PYTHON_VENV" -c 'import sys; print(sys.executable)')"
+        echo "Python in venv: $PYTHON_VENV"
+        echo "PYTHON_VENV=$PYTHON_VENV" >> "$GITHUB_ENV"
+
+        echo '::endgroup::'
       shell: bash
 
     - name: Install Python dependencies
-      env:
-        PIP_OPTIONS: ${{ steps.os.outputs.pip-options }}
       run: |
-        echo '##[group]Install Python dependencies'
-        if [ "${{ steps.venv.outcome }}" == "success" ]
-        then
-          # activate virtualenv
-          case "$RUNNER_OS" in
-            Linux*|macOS*)
-              source step-security-publish-action-venv/bin/activate;;
-            Windows*)
-              source step-security-publish-action-venv\\Scripts\\activate;;
-          esac
-        fi
-        which python3
-
-        # make sure wheel is installed, which improves installing our dependencies
-        python3 -m pip install $PIP_OPTIONS wheel
-        python3 -m pip install $PIP_OPTIONS -r $GITHUB_ACTION_PATH/../python/requirements.txt
-        echo '##[endgroup]'
+        # Install Python dependencies
+        echo '::group::Install Python dependencies'
+        "$PYTHON_VENV" -m pip install -r "$GITHUB_ACTION_PATH/../python/requirements-$DEPENDENCIES_VERSION.txt"
+        echo '::endgroup::'
       shell: bash
 
     - name: Publish Test Results
       id: test-results
       run: |
-        echo '##[group]Publish Test Results'
-        # activate virtualenv
-        case "$RUNNER_OS" in
-          Linux*|macOS*)
-            source step-security-publish-action-venv/bin/activate;;
-          Windows*)
-            source step-security-publish-action-venv\\Scripts\\activate;;
-        esac
-        python3 $GITHUB_ACTION_PATH/../python/publish_test_results.py
-        echo '##[endgroup]'
+        # Publish Test Results
+        echo '::group::Publish Test Results'
+        "$PYTHON_VENV" "$GITHUB_ACTION_PATH/../python/publish_test_results.py"
+        echo '::endgroup::'
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         GITHUB_TOKEN_ACTOR: ${{ inputs.github_token_actor }}
@@ -311,6 +319,7 @@ runs:
         JSON_THOUSANDS_SEPARATOR: ${{ inputs.json_thousands_separator }}
         JSON_SUITE_DETAILS: ${{ inputs.json_suite_details }}
         JSON_TEST_CASE_RESULTS: ${{ inputs.json_test_case_results }}
+        CHECK_RUN: ${{ inputs.check_run }}
         JOB_SUMMARY: ${{ inputs.job_summary }}
         SEARCH_PULL_REQUESTS: ${{ inputs.search_pull_requests }}
         # not documented
@@ -320,7 +329,7 @@ runs:
       shell: bash
 
     - name: Save PIP packages cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       if: ( success() || failure() ) && ! steps.cache.outputs.cache-hit
       continue-on-error: true
       with:
@@ -328,5 +337,5 @@ runs:
         key: ${{ steps.cache.outputs.cache-primary-key }}
 
 branding:
-  icon: 'check-square'
+  icon: 'check-circle'
   color: 'green'
