@@ -65,8 +65,8 @@ jobs:
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["windows-2019", "windows-2022"]'
-      python-version: '["3.8", "3.9", "3.10", "3.11", "3.12", "installed"]'
-      include: '[{"os": "windows-2019", "python-version": "3.7"}]'
+      python-version: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      include: '[{"os": "windows-2022", "python-version": "installed"}]'
 
   publish:
     name: "Publish"
