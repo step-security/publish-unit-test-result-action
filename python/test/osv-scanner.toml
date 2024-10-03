@@ -1,10 +1,10 @@
 # Not part of the build process, dependencies used for testing
 
 [[IgnoredVulns]]
-id = "PYSEC-2020-176"
+id = "GHSA-3pqx-4fqf-j49f"
 
 [[IgnoredVulns]]
-id = "PYSEC-2020-96"
+id = "GHSA-6757-jp84-gxfx"
 
 [[IgnoredVulns]]
-id = "PYSEC-2021-142"
+id = "GHSA-8q59-q68h-6hv4"
