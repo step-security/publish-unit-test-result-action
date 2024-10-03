@@ -1,0 +1,10 @@
+# Not part of the build process, dependencies used for testing
+
+[[IgnoredVulns]]
+id = "PYSEC-2020-176"
+
+[[IgnoredVulns]]
+id = "PYSEC-2020-96"
+
+[[IgnoredVulns]]
+id = "PYSEC-2021-142"
