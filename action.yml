@@ -1,5 +1,5 @@
 name: 'Publish Test Results'
-
+author: 'step-security'
 description: 'Publishes JUnit, NUnit, XUnit, TRX, JSON test results on GitHub for .NET, Dart, Java, JS, Jest, Mocha, Python, Scala, …'
 
 inputs:
@@ -149,7 +149,7 @@ outputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/step-security/publish-unit-test-result-action:v2.17.0'
+  image: 'docker://ghcr.io/step-security/publish-unit-test-result-action:v2.18.0'
 
 branding:
   icon: 'check-circle'

@@ -1,4 +1,5 @@
 name: 'GHCR package downloads'
+author: 'step-security'
 description: 'A GitHub Action that fetches the number of downloads of a GHCR package'
 
 inputs:

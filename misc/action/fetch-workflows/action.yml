@@ -1,4 +1,5 @@
 name: 'Fetch workflows'
+author: 'step-security'
 description: 'A GitHub Action to find workflows matching a query'
 
 outputs:
