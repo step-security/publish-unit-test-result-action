@@ -1,0 +1,14 @@
+name: Dependency Audit Fix Run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
+
+jobs:
+  audit-fix:
+    uses: step-security/reusable-workflows/.github/workflows/auto_cherry_pick.yaml@fix_Auto-Cherry-Pick
+
