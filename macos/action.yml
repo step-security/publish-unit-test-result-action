@@ -1,5 +1,5 @@
 name: 'Publish Test Results'
-
+author: 'step-security'
 description: 'Publishes JUnit, NUnit, XUnit, TRX, JSON test results on GitHub for .NET, Dart, Java, JS, Jest, Mocha, Python, Scala, …'
 
 inputs:
@@ -177,11 +177,12 @@ runs:
         echo "PYTHON_BIN=$PYTHON_BIN" >> "$GITHUB_ENV"
 
         PYTHON_VERSION="$($PYTHON_BIN -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-        if [[ "$PYTHON_VERSION" == "3.7" ]]
-        then
+        if [[ "$PYTHON_VERSION" == "3.7" ]]; then
           echo "DEPENDENCIES_VERSION=3.7" >> "$GITHUB_ENV"
+        elif [[ "$PYTHON_VERSION" == "3.8" ]]; then
+          echo "DEPENDENCIES_VERSION=3.8" >> "$GITHUB_ENV"
         else
-          echo "DEPENDENCIES_VERSION=post-3.7" >> "$GITHUB_ENV"
+          echo "DEPENDENCIES_VERSION=post-3.8" >> "$GITHUB_ENV"
         fi
         echo "version=$PYTHON_VERSION" >> "$GITHUB_OUTPUT"
 
@@ -194,7 +195,7 @@ runs:
       continue-on-error: true
       with:
         path: '~/Library/Caches/pip'
-        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-e594996205319a7990b3a4ec677d10a3
+        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-b0048519e3287ae9cfc634aeda40cbfe
 
     - name: Create virtualenv
       id: venv

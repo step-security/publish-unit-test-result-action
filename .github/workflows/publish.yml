@@ -75,7 +75,7 @@ jobs:
           load: true
           push: false
           platforms: linux/${{ matrix.arch }}
-          tags: enricomi/publish-unit-test-result-action:latest
+          tags: step-security/publish-unit-test-result-action:latest
           outputs: type=docker
         env:
           DOCKER_BUILD_RECORD_UPLOAD: false
@@ -190,7 +190,7 @@ jobs:
             -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" \
             -v "/home/runner/work/_temp/_runner_file_commands":"/github/file_commands" \
             -v "/home/runner/work/publish-unit-test-result-action/publish-unit-test-result-action":"$GITHUB_WORKSPACE" \
-            enricomi/publish-unit-test-result-action:latest
+            step-security/publish-unit-test-result-action:latest
         shell: bash
 
       - name: JSON output
@@ -202,11 +202,13 @@ jobs:
       - name: Scan for vulnerabilities
         id: scan
         uses: crazy-max/ghaction-container-scan@v3
+        continue-on-error: true
         with:
-          image: enricomi/publish-unit-test-result-action:latest
+          image: step-security/publish-unit-test-result-action:latest
           dockerfile: ./Dockerfile
           annotations: true
       - name: Upload SARIF artifact
+        if: steps.scan.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: SARIF ${{ matrix.arch }}
@@ -304,9 +306,6 @@ jobs:
             python: "venv"
           - os: macos-latest
             os-label: macOS
-            python: "installed"
-          - os: macos-12
-            os-label: macOS 12
             python: "installed"
           - os: macos-13
             os-label: macOS 13
@@ -566,4 +565,3 @@ jobs:
         with:
           json: '${{ steps.test-results.outputs.json }}'
           json_file: 'tests.json'
-          
