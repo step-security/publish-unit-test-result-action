@@ -17,6 +17,11 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        with:
+          egress-policy: audit
+
       - name: Download and Extract Artifacts
         uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d
         with:
@@ -25,7 +30,7 @@ jobs:
 
       - name: Publish Test Results
         id: test-results
-        uses: step-security/publish-unit-test-result-action/composite@main
+        uses: step-security/publish-unit-test-result-action/composite@9ac6b1018aee0b67858b2e974ef8fa857aeadaa8 # main
         with:
           commit: ${{ github.event.workflow_run.head_sha }}
           check_name: Test Results (reference)

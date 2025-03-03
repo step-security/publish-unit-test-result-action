@@ -4,3 +4,28 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /misc/action/find-workflows
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /misc/action/package-downloads
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /python
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /python/test
+    schedule:
+      interval: daily
