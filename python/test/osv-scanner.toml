@@ -8,3 +8,30 @@ id = "PYSEC-2020-96"
 
 [[IgnoredVulns]]
 id = "PYSEC-2021-142"
+
+[[IgnoredVulns]]
+id = "PYSEC-2018-66"
+
+[[IgnoredVulns]]
+id = "PYSEC-2019-179"
+
+[[IgnoredVulns]]
+id = "PYSEC-2019-179"
+
+[[IgnoredVulns]]
+id = "PYSEC-2023-62"
+
+[[IgnoredVulns]]
+id = "PYSEC-2014-14"
+
+[[IgnoredVulns]]
+id = "GHSA-9wx4-h78v-vm56"
+
+[[IgnoredVulns]]
+id = "PYSEC-2019-179"
+
+[[IgnoredVulns]]
+id = "PYSEC-2014-13"
+
+[[IgnoredVulns]]
+id = "PYSEC-2018-28"
