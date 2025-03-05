@@ -85,6 +85,7 @@ jobs:
       checks: write
       pull-requests: write
       security-events: write
+      contents: read
 
   config-deploy:
     name: Configure Deployment

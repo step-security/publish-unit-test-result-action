@@ -1,0 +1,10 @@
+# Not part of the build process, dependencies used for testing
+
+[[IgnoredVulns]]
+id = "GHSA-9wx4-h78v-vm56"
+
+[[IgnoredVulns]]
+id = "GHSA-34jh-p97f-mpxf"
+
+[[IgnoredVulns]]
+id = "GHSA-jfmj-5v4g-7637"
