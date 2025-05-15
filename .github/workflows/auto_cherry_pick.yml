@@ -391,32 +391,33 @@ jobs:
 
                 # Commit the patched file via GitHub API
                 UPDATED_CONTENT=$(base64 -w 0 temp_file.txt)
-                echo "❌ Failed to commit changes**** for $file."
-
-
-                cat <<EOF > commit_payload.json
-                {
-                  "message": "$(echo "$COMMIT_MESSAGE" | sed 's/"/\\"/g')",
-                  "content": "$UPDATED_CONTENT",
-                  "branch": "$BRANCH",
-                  "sha": "$SHA"
-                }
-                EOF
-
-                # Optional: Validate JSON if you want safety check
-                if ! jq empty commit_payload.json 2>/dev/null; then
-                  echo "❌ Invalid JSON payload for $file. Skipping..."
+                if [ -z "$UPDATED_CONTENT" ]; then
+                  echo "❌ UPDATED_CONTENT is empty for $file. Skipping..."
                   CONFLICTING_FILES="${CONFLICTING_FILES}\n$file:$COMMIT_HASH"
+                  continue
+                fi
+
+                ESCAPED_MSG=$(echo "$COMMIT_MESSAGE" | sed 's/"/\\"/g')
+
+                (
+                  echo "{"
+                  echo "  \"message\": \"$ESCAPED_MSG\","
+                  echo "  \"content\": \"$UPDATED_CONTENT\","
+                  echo "  \"branch\": \"$BRANCH\","
+                  echo "  \"sha\": \"$SHA\""
+                  echo "}"
+                ) > commit_payload.json
+
+                if ! jq empty commit_payload.json; then
+                  echo "❌ Invalid JSON in payload. Skipping $file"
                   rm -f commit_payload.json
                   continue
                 fi
 
-                # Send to GitHub API
                 RESPONSE=$(gh api --method PUT "repos/$TARGET_REPO/contents/$file" \
-                    -H "Accept: application/vnd.github.v3+json" \
-                    --input commit_payload.json 2>/dev/null || echo "ERROR")
+                  -H "Accept: application/vnd.github.v3+json" \
+                  --input commit_payload.json 2>/dev/null || echo "ERROR")
 
-                # Cleanup
                 rm -f commit_payload.json
                 
                 echo "❌ Failed to commit changes9999 for $file."
