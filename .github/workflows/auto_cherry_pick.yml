@@ -394,22 +394,30 @@ jobs:
                 echo "❌ Failed to commit changes**** for $file."
 
 
-                COMMIT_PAYLOAD=$(jq -n --arg msg "$COMMIT_MESSAGE" \
-                    --arg content "$UPDATED_CONTENT" \
-                    --arg branch "$BRANCH" \
-                    --arg sha "$SHA" \
-                    '{
-                      "message": $msg,
-                      "content": $content,
-                      "branch": $branch,
-                      "sha": $sha
-                    }')
+                cat <<EOF > commit_payload.json
+                {
+                  "message": "$(echo "$COMMIT_MESSAGE" | sed 's/"/\\"/g')",
+                  "content": "$UPDATED_CONTENT",
+                  "branch": "$BRANCH",
+                  "sha": "$SHA"
+                }
+                EOF
 
-                echo "❌ Failed to commit changes666666 for $file."
+                # Optional: Validate JSON if you want safety check
+                if ! jq empty commit_payload.json 2>/dev/null; then
+                  echo "❌ Invalid JSON payload for $file. Skipping..."
+                  CONFLICTING_FILES="${CONFLICTING_FILES}\n$file:$COMMIT_HASH"
+                  rm -f commit_payload.json
+                  continue
+                fi
 
+                # Send to GitHub API
                 RESPONSE=$(gh api --method PUT "repos/$TARGET_REPO/contents/$file" \
                     -H "Accept: application/vnd.github.v3+json" \
-                    --input - <<< "$COMMIT_PAYLOAD" 2>/dev/null || echo "ERROR")
+                    --input commit_payload.json 2>/dev/null || echo "ERROR")
+
+                # Cleanup
+                rm -f commit_payload.json
                 
                 echo "❌ Failed to commit changes9999 for $file."
 
