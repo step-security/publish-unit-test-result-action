@@ -122,6 +122,7 @@ jobs:
             -e "INPUT_GITHUB_TOKEN" \
             -e "INPUT_GITHUB_TOKEN_ACTOR" \
             -e "INPUT_GITHUB_RETRIES" \
+             -e "INPUT_SSL_VERIFY" \
             -e "INPUT_COMMIT" \
             -e "INPUT_COMMENT_TITLE" \
             -e "INPUT_COMMENT_MODE" \
@@ -499,7 +500,7 @@ jobs:
         id: test-results
         uses: ./composite
         with:
-          check_name: Test Results (${{ matrix.os-label }} composite python ${{ matrix.python }})
+          check_name: Test Results (${{ matrix.os-label }} composite)
           files: |
             artifacts/**/*.xml
             artifacts\**\*.xml
