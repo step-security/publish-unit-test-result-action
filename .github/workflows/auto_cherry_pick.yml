@@ -282,7 +282,6 @@ jobs:
 
       - name: Cherry-Pick Changes via gh CLI
         run: |
-          ulimit -s 65536
           UPSTREAM_REPO="${{ inputs.original-owner }}/${{ inputs.repo-name }}"
           TARGET_REPO="${{ github.repository }}"
           BRANCH="${{ env.BRANCH_NAME }}"
