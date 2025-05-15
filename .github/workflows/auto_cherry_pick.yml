@@ -390,7 +390,8 @@ jobs:
 
 
                 # Commit the patched file via GitHub API
-                UPDATED_CONTENT=$(base64 -w 0 temp_file.txt)
+                UPDATED_CONTENT=$(base64 < temp_file.txt | tr -d '\n')
+
                 if [ -z "$UPDATED_CONTENT" ]; then
                   echo "❌ UPDATED_CONTENT is empty for $file. Skipping..."
                   CONFLICTING_FILES="${CONFLICTING_FILES}\n$file:$COMMIT_HASH"
