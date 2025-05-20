@@ -22,28 +22,31 @@ or ![ARM Linux](misc/badge-arm.svg) self-hosted runners that support Docker:
 
 See the [notes on running this action with absolute paths](#running-with-absolute-paths) if you cannot use relative test result file paths.
 
-Use this for ![macOS](misc/badge-macos.svg) (e.g. `runs-on: macos-latest`) runners:
+Use this for ![macOS](misc/badge-macos.svg) (e.g. `runs-on: macos-latest`) runners (no Docker needed):
 ```yaml
 - name: Publish Test Results
   uses: step-security/publish-unit-test-result-action/macos@v2
   if: always()
   with:
-    files: |
-      test-results/**/*.xml
-      test-results/**/*.trx
-      test-results/**/*.json
+    files: …
 ```
 
-… and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners:
+… and ![Windows](misc/badge-windows.svg) (e.g. `runs-on: windows-latest`) runners (no Docker needed):
 ```yaml
 - name: Publish Test Results
   uses: step-security/publish-unit-test-result-action/windows@v2
   if: always()
   with:
-    files: |
-      test-results\**\*.xml
-      test-results\**\*.trx
-      test-results\**\*.json
+    files: …
+```
+
+For Windows **without PowerShell** installed, there is the Bash shell variant:
+```yaml
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/windows/bash@v2
+  if: always()
+  with:
+    files: …
 ```
 
 For **self-hosted** Linux GitHub Actions runners **without Docker** installed, please use:
@@ -52,10 +55,7 @@ For **self-hosted** Linux GitHub Actions runners **without Docker** installed, p
   uses: step-security/publish-unit-test-result-action/linux@v2
   if: always()
   with:
-    files: |
-      test-results/**/*.xml
-      test-results/**/*.trx
-      test-results/**/*.json
+    files: …
 ```
 
 See the [notes on running this action as a non-Docker action](#running-as-a-non-docker-action).
@@ -297,6 +297,7 @@ The list of most notable options:
 |`github_token`|`${{github.token}}`|An alternative GitHub token, other than the default provided by GitHub Actions runner.|
 |`github_token_actor`|`github-actions`|The name of the GitHub app that owns the GitHub API Access Token (see github_token). Used to identify pull request comments created by this action during earlier runs. Has to be set when `github_token` is set to a GitHub app installation token (other than GitHub actions). Otherwise, existing comments will not be updated, but new comments created. Note: this does not change the bot name of the pull request comments.|
 |`github_retries`|`10`|Requests to the GitHub API are retried this number of times. The value must be a positive integer or zero.|
+|`ssl_verify`|`true`|Either `true` or `false`, in which case it controls whether to verify the Github server’s TLS certificate, or a string, in which case it must be a path to a CA bundle to use. Default is `true`.|
 |`seconds_between_github_reads`|`0.25`|Sets the number of seconds the action waits between concurrent read requests to the GitHub API.|
 |`seconds_between_github_writes`|`2.0`|Sets the number of seconds the action waits between concurrent write requests to the GitHub API.|
 |`secondary_rate_limit_wait_seconds`|`60.0`|Sets the number of seconds to wait before retrying secondary rate limit errors. If not set, the default defined in the PyGithub library is used (currently 60 seconds).|
@@ -856,3 +857,26 @@ is **deprecated**, please use an action appropriate for your operating system an
 - Windows (Bash shell): `uses: step-security/publish-unit-test-result-action/windows/bash@v2`
 
 These are non-Docker variations of this action. For details, see section ["Running as a non-Docker action"](#running-as-a-non-docker-action) above.
+
+The composite action was able to run on any operating system, as long as Bash shell is installed.
+The same behaviour can be achieved with multiple steps, each for a specific operating system:
+
+```yaml
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/linux@2
+  if: runner.os == 'Linux'
+  with:
+    files: test-results/**/*.xml
+
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/macos@2
+  if: runner.os == 'macOS'
+  with:
+    files: test-results/**/*.xml
+
+- name: Publish Test Results
+  uses: step-security/publish-unit-test-result-action/windows/bash@2
+  if: runner.os == 'Windows'
+  with:
+    files: test-results/**/*.xml
+```
