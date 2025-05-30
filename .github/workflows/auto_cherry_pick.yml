@@ -7,8 +7,6 @@ on:
         description: "Base branch to create the PR against"
         required: true
         default: "main"
-  schedule:
-    - cron: "0 0 * * 1"
 
 permissions:
   contents: write
@@ -17,7 +15,7 @@ permissions:
   issues: write
 
 jobs:
-  audit-fix:
+  cherry-pick:
     uses: step-security/reusable-workflows/.github/workflows/auto_cherry_pick.yaml@v1
     with:
       original-owner: "EnricoMi"
