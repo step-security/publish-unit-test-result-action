@@ -100,7 +100,7 @@ jobs:
 
       - name: Publish Test Results
         id: test-results
-        if: always()
+        if: (!cancelled())
         env:
           INPUT_GITHUB_TOKEN: ${{ github.token }}
           INPUT_CHECK_NAME: Test Results (Docker Image ${{ matrix.arch }})
@@ -120,9 +120,8 @@ jobs:
             -e "INPUT_LOG_LEVEL" \
             -e "INPUT_ROOT_LOG_LEVEL" \
             -e "INPUT_GITHUB_TOKEN" \
-            -e "INPUT_GITHUB_TOKEN_ACTOR" \
             -e "INPUT_GITHUB_RETRIES" \
-             -e "INPUT_SSL_VERIFY" \
+            -e "INPUT_SSL_VERIFY" \
             -e "INPUT_COMMIT" \
             -e "INPUT_COMMENT_TITLE" \
             -e "INPUT_COMMENT_MODE" \
@@ -228,7 +227,7 @@ jobs:
           name: SARIF ${{ matrix.arch }}
           path: ${{ steps.scan.outputs.sarif }}
       - name: Upload SARIF file
-        if: always() && steps.scan.outputs.sarif != ''
+        if: (!cancelled()) && steps.scan.outputs.sarif != ''
         uses: github/codeql-action/upload-sarif@b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d # v3.28.10
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
@@ -442,7 +441,7 @@ jobs:
 
       - name: Publish Test Results (Bash)
         id: test-results-bash
-        if: always() && steps.test-results.outcome != 'skipped'
+        if: (!cancelled()) && steps.test-results.outcome != 'skipped'
         uses: ./windows/bash
         with:
           check_name: Test Results (${{ matrix.os-label }} bash python ${{ matrix.python }})

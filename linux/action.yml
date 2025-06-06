@@ -8,8 +8,8 @@ inputs:
     default: ${{ github.token }}
     required: false
   github_token_actor:
-    description: 'The name of the GitHub app that owns the GitHub API Access Token (see github_token). Used to identify pull request comments created by this action during earlier runs. Has to be set when `github_token` is set to a GitHub app installation token (other than GitHub actions). Otherwise, existing comments will not be updated, but new comments created. Note: this does not change the bot name of the pull request comments. Defaults to "github-actions".'
-    default: 'github-actions'
+    description: '[deprecated] This is not needed any more as this is detected automatically.'
+    deprecationMessage: 'This is not needed any more as this is detected automatically.'
     required: false
   github_retries:
     description: 'Requests to the GitHub API are retried this number of times. The value must be a positive integer or zero.'
@@ -50,15 +50,19 @@ inputs:
     required: false
   junit_files:
     description: 'Deprecated, use "files" option instead.'
+    deprecationMessage: 'Use "files" option instead.'
     required: false
   nunit_files:
     description: 'Deprecated, use "files" option instead.'
+    deprecationMessage: 'Use "files" option instead.'
     required: false
   xunit_files:
     description: 'Deprecated, use "files" option instead.'
+    deprecationMessage: 'Use "files" option instead.'
     required: false
   trx_files:
     description: 'Deprecated, use "files" option instead.'
+    deprecationMessage: 'Use "files" option instead.'
     required: false
   time_unit:
     description: 'Time values in the test result files have this unit. Supports "seconds" and "milliseconds".'
@@ -198,8 +202,8 @@ runs:
       id: cache
       continue-on-error: true
       with:
-        path: '~/.cache/pip'
-        key: step-security-publish-action-${{ runner.os }}-${{ runner.arch }}-pip-${{ steps.python.outputs.version }}-b0048519e3287ae9cfc634aeda40cbfe
+        path: .step-security-publish-action-pip
+        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-b0048519e3287ae9cfc634aeda40cbfe
 
     - name: Create virtualenv
       id: venv
@@ -211,16 +215,16 @@ runs:
         echo "Python that creates venv: $PYTHON_BIN"
 
         echo "Creating virtual environment"
-        if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv && ! "$PYTHON_BIN" -m venv step-security-publish-action-venv
+        if ! "$PYTHON_BIN" -m virtualenv .step-security-publish-action-venv && ! "$PYTHON_BIN" -m venv .step-security-publish-action-venv
         then
           echo "Looks like there is neither virtualenv nor venv package installed"
-          if ! "$PYTHON_BIN" -m pip install virtualenv
+          if ! "$PYTHON_BIN" -m pip --cache-dir .step-security-publish-action-pip install virtualenv
           then
             echo "::error::Installing virtualenv package failed"
             exit 1
           fi
 
-          if ! "$PYTHON_BIN" -m virtualenv step-security-publish-action-venv
+          if ! "$PYTHON_BIN" -m virtualenv .step-security-publish-action-venv
           then
             echo "::error::Cannot create venv after installing virtualenv package"
             exit 1
@@ -228,7 +232,7 @@ runs:
         fi
 
         echo "Finding Python interpreter in venv"
-        PYTHON_VENV="step-security-publish-action-venv/bin/python"
+        PYTHON_VENV=".step-security-publish-action-venv/bin/python"
         PYTHON_VENV="$("$PYTHON_VENV" -c 'import sys; print(sys.executable)')"
         echo "Python in venv: $PYTHON_VENV"
         echo "PYTHON_VENV=$PYTHON_VENV" >> "$GITHUB_ENV"
@@ -240,7 +244,7 @@ runs:
       run: |
         # Install Python dependencies
         echo '::group::Install Python dependencies'
-        "$PYTHON_VENV" -m pip install -r "$GITHUB_ACTION_PATH/../python/requirements-$DEPENDENCIES_VERSION.txt"
+        "$PYTHON_VENV" -m pip --cache-dir .step-security-publish-action-pip install -r "$GITHUB_ACTION_PATH/../python/requirements-$DEPENDENCIES_VERSION.txt"
         echo '::endgroup::'
       shell: bash
 
@@ -253,7 +257,6 @@ runs:
         echo '::endgroup::'
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
-        GITHUB_TOKEN_ACTOR: ${{ inputs.github_token_actor }}
         GITHUB_RETRIES: ${{ inputs.github_retries }}
         SSL_VERIFY: ${{ inputs.ssl_verify }}
         COMMIT: ${{ inputs.commit }}
@@ -303,7 +306,7 @@ runs:
       if: ( success() || failure() ) && ! steps.cache.outputs.cache-hit
       continue-on-error: true
       with:
-        path: '~/.cache/pip'
+        path: .step-security-publish-action-pip
         key: ${{ steps.cache.outputs.cache-primary-key }}
 
 branding:

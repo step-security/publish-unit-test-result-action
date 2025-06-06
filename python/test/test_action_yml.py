@@ -61,8 +61,10 @@ class TestActionYml(unittest.TestCase):
         # check inputs forwarded to action
         # these are not documented in the action.yml files but still needs to be forwarded
         extra_inputs = ['files', 'root_log_level', 'log_level']
+        # these are documented in the action.yml files but not forwarded to docker
+        obsolete_inputs = ['github_token_actor']
         expected = {key.upper(): f'${{{{ inputs.{key} }}}}'
-                    for key in list(composite_action.get('inputs', {}).keys()) + extra_inputs}
+                    for key in list(composite_action.get('inputs', {}).keys() - obsolete_inputs) + extra_inputs}
 
         steps = composite_action.get('runs', {}).get('steps', [])
         steps = [step for step in steps if step.get('name') == 'Publish Test Results']
@@ -84,6 +86,38 @@ class TestActionYml(unittest.TestCase):
                                   if step.get('uses', '').startswith('actions/cache/restore@'))
                 self.assertEqual(expected_hash, cache_hash, msg='Changing python/requirements.txt requires '
                                                                 'to update the MD5 hash in composite/action.yaml')
+
+    def test_action_types(self):
+        self.do_test_action_types('.')
+
+    def test_composite_action_types(self):
+        self.do_test_action_types('composite')
+
+    def test_linux_action_types(self):
+        self.do_test_action_types('linux')
+
+    def test_macos_action_types(self):
+        self.do_test_action_types('macos')
+
+    def test_windows_action_types(self):
+        self.do_test_action_types('windows')
+
+    def test_windows_bash_action_types(self):
+        self.do_test_action_types('windows/bash')
+
+    def do_test_action_types(self, subaction: str):
+        with open(project_root / 'action-types.yml', encoding='utf-8') as r:
+            root_action_types = yaml.safe_load(r)
+
+        with open(project_root / f'{subaction}/action.yml', encoding='utf-8') as r:
+            action = yaml.safe_load(r)
+
+        with open(project_root / f'{subaction}/action-types.yml', encoding='utf-8') as r:
+            action_types = yaml.safe_load(r)
+
+        self.assertEqual(action_types.get('inputs', {}).keys(), action.get('inputs', {}).keys())
+        self.assertEqual(action_types.get('outputs', {}).keys(), action.get('outputs', {}).keys())
+        self.assertEqual(action_types, root_action_types)
 
     def test_proxy_action(self):
         # TODO
