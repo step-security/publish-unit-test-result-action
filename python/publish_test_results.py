@@ -240,9 +240,12 @@ def validate_subscription():
     try:
         response = requests.get(API_URL, timeout=3)
         response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        print("Subscription is not valid. Reach out to support@stepsecurity.io")
-        exit(1)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            print("Subscription is not valid. Reach out to support@stepsecurity.io")
+            exit(1)
+        else:
+            print("Timeout or API not reachable. Continuing to next step.")    
     except requests.exceptions.RequestException:
         print("Timeout or API not reachable. Continuing to next step.")
 
