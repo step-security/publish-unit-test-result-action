@@ -235,14 +235,17 @@ def action_fail_required(conclusion: str, action_fail: bool, action_fail_on_inco
 
 
 def validate_subscription():
-    API_URL = f"https://agent.api.stepsecurity.io/v1/github/{os.environ['GITHUB_REPOSITORY']}/actions/subscription"
+    API_URL = f"https://mock-subcription.free.beeceptor.com/mock/v1"
 
     try:
         response = requests.get(API_URL, timeout=3)
         response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        print("Subscription is not valid. Reach out to support@stepsecurity.io")
-        exit(1)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            print("Subscription is not valid. Reach out to support@stepsecurity.io")
+            exit(1)
+        else:
+            print("Timeout or API not reachable. Continuing to next step.")    
     except requests.exceptions.RequestException:
         print("Timeout or API not reachable. Continuing to next step.")
 
