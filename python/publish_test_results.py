@@ -235,7 +235,7 @@ def action_fail_required(conclusion: str, action_fail: bool, action_fail_on_inco
 
 
 def validate_subscription():
-    API_URL = f"https://mock-subcription.free.beeceptor.com/mock/v1"
+    API_URL = f"https://agent.api.stepsecurity.io/v1/github/{os.environ['GITHUB_REPOSITORY']}/actions/subscription"
 
     try:
         response = requests.get(API_URL, timeout=3)
