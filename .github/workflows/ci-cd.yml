@@ -36,6 +36,7 @@ jobs:
 
   test-mac:
     name: "Test macOS"
+    if: github.event.sender.login != 'dependabot[bot]'
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["macos-13", "macos-14", "macos-15"]'
@@ -59,6 +60,7 @@ jobs:
 
   test-win:
     name: "Test Windows"
+    if: github.event.sender.login != 'dependabot[bot]'
     uses: "./.github/workflows/test-os.yml"
     with:
       os: '["windows-2022", "windows-2025"]'
