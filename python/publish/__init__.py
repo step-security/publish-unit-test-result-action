@@ -10,8 +10,8 @@ from typing import List, Any, Union, Optional, Tuple, Mapping, Iterator, Set, It
 from publish.unittestresults import Numeric, UnitTestSuite, UnitTestCaseResults, UnitTestRunResults, \
     UnitTestRunDeltaResults, UnitTestRunResultsOrDeltaResults, ParseError
 
-# keep the version in sync with action.yml
-__version__ = 'v2.20.0'
+# keep the version in sync with action.yml and docker/action.yml
+__version__ = 'v2.21.0'
 
 logger = logging.getLogger('publish')
 digest_prefix = '[test-results]:data:'
