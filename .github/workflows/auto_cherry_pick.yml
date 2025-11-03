@@ -29,3 +29,4 @@ jobs:
       original-owner: "EnricoMi"
       repo-name: "publish-unit-test-result-action"
       base_branch: ${{ inputs.base_branch }}
+      mode: ${{ github.event_name == 'pull_request' && 'verify' || inputs.mode }}
