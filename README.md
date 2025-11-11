@@ -349,7 +349,7 @@ You can control the Docker image used for the action as below. For this, you nee
 
 ```yaml
 - name: Publish Test Results
-  uses: EnricoMi/publish-unit-test-result-action/docker@v2
+  uses: step-security/publish-unit-test-result-action/docker@v2
   if: (!cancelled())
   with:
     docker_registry: ghcr.io
@@ -359,7 +359,7 @@ You can control the Docker image used for the action as below. For this, you nee
 | Option            |               Default Value                | Description                                                                                                      |
 |:------------------|:------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------|
 | `docker_registry` |                 `ghcr.io`                  | The docker registry to pull the pre-built action from. Defaults to the Github registry `ghcr.io`.                |
-| `docker_image`    | `enricomi/publish-unit-test-result-action` | The docker image name to pull the pre-built action from. Defaults to `enricomi/publish-unit-test-result-action`. |
+| `docker_image`    | `step-security/publish-unit-test-result-action` | The docker image name to pull the pre-built action from. Defaults to `step-security/publish-unit-test-result-action`. |
 | `docker_tag`      |      *The same version as in `uses:`*      | The docker tag to pull the pre-built action from. This is usually not needed.                                    |
 | `docker_platform` |                                            | The platform to use when pulling the docker image.                                                               |
 </details>
@@ -371,7 +371,7 @@ You can control the Docker image used for the action as below. For this, you nee
 
 ```yaml
 - name: Publish Test Results
-  uses: EnricoMi/publish-unit-test-result-action/docker@v2
+  uses: step-security/publish-unit-test-result-action/docker@v2
   if: (!cancelled())
   with:
     docker_registry: ghcr.io
@@ -381,7 +381,7 @@ You can control the Docker image used for the action as below. For this, you nee
 | Option            |               Default Value                | Description                                                                                                      |
 |:------------------|:------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------|
 | `docker_registry` |                 `ghcr.io`                  | The docker registry to pull the pre-built action from. Defaults to the Github registry `ghcr.io`.                |
-| `docker_image`    | `enricomi/publish-unit-test-result-action` | The docker image name to pull the pre-built action from. Defaults to `enricomi/publish-unit-test-result-action`. |
+| `docker_image`    | `step-security/publish-unit-test-result-action` | The docker image name to pull the pre-built action from. Defaults to `step-security/publish-unit-test-result-action`. |
 | `docker_tag`      |      *The same version as in `uses:`*      | The docker tag to pull the pre-built action from. This is usually not needed.                                    |
 | `docker_platform` |                                            | The platform to use when pulling the docker image.                                                               |
 </details>
@@ -910,19 +910,19 @@ The same behaviour can be achieved with multiple steps, each for a specific oper
 
 ```yaml
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action/linux@2
+  uses: step-security/publish-unit-test-result-action/linux@v2
   if: runner.os == 'Linux'
   with:
     files: test-results/**/*.xml
 
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action/macos@2
+  uses: step-security/publish-unit-test-result-action/macos@v2
   if: runner.os == 'macOS'
   with:
     files: test-results/**/*.xml
 
 - name: Publish Test Results
-  uses: step-security/publish-unit-test-result-action/windows/bash@2
+  uses: step-security/publish-unit-test-result-action/windows/bash@v2
   if: runner.os == 'Windows'
   with:
     files: test-results/**/*.xml
