@@ -16,15 +16,15 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
@@ -65,12 +65,12 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
@@ -79,132 +79,39 @@ jobs:
           platforms: ${{ matrix.arch }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
       - name: Build Docker image
         id: build
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           load: true
           push: false
           platforms: linux/${{ matrix.arch }}
-          tags: step-security/publish-unit-test-result-action:latest
+          tags: local/step-security/publish-unit-test-result-action:latest
           outputs: type=docker
         env:
           DOCKER_BUILD_RECORD_UPLOAD: false
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
       - name: Publish Test Results
         id: test-results
         if: (!cancelled())
-        env:
-          INPUT_GITHUB_TOKEN: ${{ github.token }}
-          INPUT_CHECK_NAME: Test Results (Docker Image ${{ matrix.arch }})
-          INPUT_FILES: "artifacts/**/*.xml"
-          INPUT_JSON_FILE: "tests.json"
-          INPUT_JSON_SUITE_DETAILS: true
-          INPUT_JSON_TEST_CASE_RESULTS: true
-          INPUT_REPORT_SUITE_LOGS: "any"
-        run: |
-          docker run --platform linux/${{ matrix.arch }} \
-            --workdir $GITHUB_WORKSPACE \
-            --rm \
-            -e "INPUT_CHECK_NAME" \
-            -e "INPUT_JSON_FILE" \
-            -e "INPUT_JSON_SUITE_DETAILS" \
-            -e "INPUT_JSON_TEST_CASE_RESULTS" \
-            -e "INPUT_LOG_LEVEL" \
-            -e "INPUT_ROOT_LOG_LEVEL" \
-            -e "INPUT_GITHUB_TOKEN" \
-            -e "INPUT_GITHUB_RETRIES" \
-            -e "INPUT_SSL_VERIFY" \
-            -e "INPUT_COMMIT" \
-            -e "INPUT_COMMENT_TITLE" \
-            -e "INPUT_COMMENT_MODE" \
-            -e "INPUT_FAIL_ON" \
-            -e "INPUT_ACTION_FAIL" \
-            -e "INPUT_ACTION_FAIL_ON_INCONCLUSIVE" \
-            -e "INPUT_FILES" \
-            -e "INPUT_JUNIT_FILES" \
-            -e "INPUT_NUNIT_FILES" \
-            -e "INPUT_XUNIT_FILES" \
-            -e "INPUT_TRX_FILES" \
-            -e "INPUT_TIME_UNIT" \
-            -e "INPUT_TEST_FILE_PREFIX" \
-            -e "INPUT_REPORT_INDIVIDUAL_RUNS" \
-            -e "INPUT_REPORT_SUITE_LOGS" \
-            -e "INPUT_DEDUPLICATE_CLASSES_BY_FILE_NAME" \
-            -e "INPUT_LARGE_FILES" \
-            -e "INPUT_IGNORE_RUNS" \
-            -e "INPUT_CHECK_RUN" \
-            -e "INPUT_JOB_SUMMARY" \
-            -e "INPUT_COMPARE_TO_EARLIER_COMMIT" \
-            -e "INPUT_PULL_REQUEST_BUILD" \
-            -e "INPUT_EVENT_FILE" \
-            -e "INPUT_EVENT_NAME" \
-            -e "INPUT_TEST_CHANGES_LIMIT" \
-            -e "INPUT_CHECK_RUN_ANNOTATIONS" \
-            -e "INPUT_CHECK_RUN_ANNOTATIONS_BRANCH" \
-            -e "INPUT_SECONDS_BETWEEN_GITHUB_READS" \
-            -e "INPUT_SECONDS_BETWEEN_GITHUB_WRITES" \
-            -e "INPUT_SECONDARY_RATE_LIMIT_WAIT_SECONDS" \
-            -e "INPUT_JSON_THOUSANDS_SEPARATOR" \
-            -e "INPUT_SEARCH_PULL_REQUESTS" \
-            -e "HOME" \
-            -e "GITHUB_JOB" \
-            -e "GITHUB_REF" \
-            -e "GITHUB_SHA" \
-            -e "GITHUB_REPOSITORY" \
-            -e "GITHUB_REPOSITORY_OWNER" \
-            -e "GITHUB_RUN_ID" \
-            -e "GITHUB_RUN_NUMBER" \
-            -e "GITHUB_RETENTION_DAYS" \
-            -e "GITHUB_RUN_ATTEMPT" \
-            -e "GITHUB_ACTOR" \
-            -e "GITHUB_TRIGGERING_ACTOR" \
-            -e "GITHUB_WORKFLOW" \
-            -e "GITHUB_HEAD_REF" \
-            -e "GITHUB_BASE_REF" \
-            -e "GITHUB_EVENT_NAME" \
-            -e "GITHUB_SERVER_URL" \
-            -e "GITHUB_API_URL" \
-            -e "GITHUB_GRAPHQL_URL" \
-            -e "GITHUB_REF_NAME" \
-            -e "GITHUB_REF_PROTECTED" \
-            -e "GITHUB_REF_TYPE" \
-            -e "GITHUB_WORKSPACE" \
-            -e "GITHUB_ACTION" \
-            -e "GITHUB_EVENT_PATH" \
-            -e "GITHUB_ACTION_REPOSITORY" \
-            -e "GITHUB_ACTION_REF" \
-            -e "GITHUB_PATH" \
-            -e "GITHUB_ENV" \
-            -e "GITHUB_STEP_SUMMARY" \
-            -e "GITHUB_STATE" \
-            -e "GITHUB_OUTPUT" \
-            -e "RUNNER_OS" \
-            -e "RUNNER_ARCH" \
-            -e "RUNNER_NAME" \
-            -e "RUNNER_TOOL_CACHE" \
-            -e "RUNNER_TEMP" \
-            -e "RUNNER_WORKSPACE" \
-            -e "ACTIONS_RUNTIME_URL" \
-            -e "ACTIONS_RUNTIME_TOKEN" \
-            -e "ACTIONS_CACHE_URL" \
-            -e GITHUB_ACTIONS=true \
-            -e CI=true \
-            -v "$RUNNER_TEMP":"$RUNNER_TEMP" \
-            -v "/var/run/docker.sock":"/var/run/docker.sock" \
-            -v "/home/runner/work/_temp/_github_home":"/github/home" \
-            -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" \
-            -v "/home/runner/work/_temp/_runner_file_commands":"/github/file_commands" \
-            -v "/home/runner/work/publish-unit-test-result-action/publish-unit-test-result-action":"$GITHUB_WORKSPACE" \
-            step-security/publish-unit-test-result-action:latest
-        shell: bash
+        uses: ./docker
+        with:
+          check_name: Test Results (Docker Image ${{ matrix.arch }})
+          files: "artifacts/**/*.xml"
+          json_file: "tests.json"
+          json_suite_details: true
+          json_test_case_results: true
+          report_suite_logs: "any"
+          docker_registry: local
+          docker_tag: latest
+          log_level: DEBUG
 
       - name: JSON output
         uses: ./misc/action/json-output
@@ -214,7 +121,7 @@ jobs:
 
       - name: Scan for vulnerabilities
         id: scan
-        uses: crazy-max/ghaction-container-scan@3e9c23f89cd6b0bda949ffe14f28a3ce282323b7 # v3.0.0
+        uses: crazy-max/ghaction-container-scan@4d8e0acba576e46016cbd65b9ecfc604e85e3990 # v3.2.0
         continue-on-error: true
         with:
           image: step-security/publish-unit-test-result-action:latest
@@ -222,13 +129,13 @@ jobs:
           annotations: true
       - name: Upload SARIF artifact
         if: steps.scan.outcome == 'success'
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: SARIF ${{ matrix.arch }}
           path: ${{ steps.scan.outputs.sarif }}
       - name: Upload SARIF file
-        if: (!cancelled()) && steps.scan.outputs.sarif != ''
-        uses: github/codeql-action/upload-sarif@b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d # v3.28.10
+        if: (!cancelled() && steps.scan.outputs.sarif != '')
+        uses: github/codeql-action/upload-sarif@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3.31.2
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
 
@@ -260,16 +167,16 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Python
         if: matrix.python != 'installed' && matrix.python != 'venv'
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: ${{ matrix.python }}
 
@@ -279,7 +186,7 @@ jobs:
         shell: bash
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
@@ -313,37 +220,31 @@ jobs:
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
         include:
-          - os: macos-13
-            os-label: macOS
-            python: "3.8"
           - os: macos-latest
             os-label: macOS
             python: "venv"
           - os: macos-latest
             os-label: macOS
             python: "installed"
-          - os: macos-13
-            os-label: macOS 13
-            python: "installed"
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Python
         if: matrix.python != 'installed' && matrix.python != 'venv'
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: ${{ matrix.python }}
 
       - name: Setup Python
         if: matrix.python == 'venv'
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: "3.10"
 
@@ -353,7 +254,7 @@ jobs:
         shell: bash
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
@@ -396,16 +297,16 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Python
         if: matrix.python != 'installed' && matrix.python != 'venv'
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: ${{ matrix.python }}
 
@@ -415,7 +316,7 @@ jobs:
         shell: bash
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
@@ -438,7 +339,7 @@ jobs:
 
       - name: Publish Test Results (Bash)
         id: test-results-bash
-        if: (!cancelled()) && steps.test-results.outcome != 'skipped'
+        if: (!cancelled() && steps.test-results.outcome != 'skipped')
         uses: ./windows/bash
         with:
           check_name: Test Results (${{ matrix.os-label }} bash python ${{ matrix.python }})
@@ -477,15 +378,15 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
 
@@ -517,12 +418,12 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Copy test result files
         run: cp -rv python/test/files test-files
@@ -568,12 +469,12 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Copy test junit xml files
         run: cp -rv python/test/files/junit-xml test-files
