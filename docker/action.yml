@@ -150,6 +150,21 @@ inputs:
     description: 'Prior to v2.6.0, the action used the "/search/issues" REST API to find pull requests related to a commit. If you need to restore that behaviour, set this to "true". Defaults to "false".'
     default: 'false'
     required: false
+  docker_platform:
+    description: 'The platform to use when pulling the docker image'
+    required: false
+  docker_registry:
+    description: 'The docker registry to pull the pre-built action from. Defaults to the Github registry ghcr.io'
+    default: 'ghcr.io'
+    required: false
+  docker_image:
+    description: 'The docker image name to pull the pre-built action from. Defaults to step-security/publish-unit-test-result-action'
+    default: 'step-security/publish-unit-test-result-action'
+    required: false
+  docker_tag:
+    description: 'The docker tag to pull the pre-built action from.'
+    default: 'v2.21.0'
+    required: false
 
 outputs:
   json:
@@ -159,161 +174,148 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Check for Python3
-      id: python
-      run: |
-        # Check for Python3
-        Write-Output "::group::Check for Python3"
-        try {
-          # we check version here just to execute `python3` with an argument
-          # on Windows, there is a `python3.exe` that is a proxy to trigger installation from app store
-          # command `which python3` finds that, but `python3 -V` does not return the version on stdout
-          if ( !(Get-Command python3 -ErrorAction SilentlyContinue) -Or -Not ((python3 -V 2> $null) -Like "Python 3.*") ) {
-            if ( !(Get-Command python -ErrorAction SilentlyContinue) -Or -Not ((python -V 2> $null) -Like "Python 3.*") ) {
-              Write-Output "::error::No python3 interpreter found. Please setup python before running this action. You could use https://github.com/actions/setup-python."
-              Exit 1
-            }
-
-            $PYTHON_BIN = python -c "import sys; print(sys.executable)"
-          } else {
-            $PYTHON_BIN = python3 -c "import sys; print(sys.executable)"
-          }
-          Write-Output "Python that creates venv: $PYTHON_BIN"
-          "PYTHON_BIN=$PYTHON_BIN" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          $PYTHON_VERSION = Invoke-Expression -Command "& '$PYTHON_BIN' -c 'import sys; print(sys.version_info.major, sys.version_info.minor, sep=chr(46))'"
-          Write-Output "Python version: $PYTHON_VERSION"
-
-          if ( $PYTHON_VERSION -eq "3.7" ) {
-            "DEPENDENCIES_VERSION=3.7" | Out-File -FilePath $env:GITHUB_ENV -Append
-          } elseif ( $PYTHON_VERSION -eq "3.8" ) {
-            "DEPENDENCIES_VERSION=3.8" | Out-File -FilePath $env:GITHUB_ENV -Append
-          } else {
-            "DEPENDENCIES_VERSION=post-3.8" | Out-File -FilePath $env:GITHUB_ENV -Append
-          }
-          "version=$PYTHON_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        } finally {
-          Write-Output "::endgroup::"
-        }
-      shell: pwsh
-
-    - name: Restore PIP packages cache
-      uses: actions/cache/restore@v4
-      id: cache
-      continue-on-error: true
-      with:
-        path: .step-security-publish-action-pip
-        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-cc226b680143b014d26e2c7e6eee8327
-
-    - name: Create virtualenv
-      id: venv
-      continue-on-error: true
-      run: |
-        # Create virtualenv
-        Write-Output "::group::Create virtualenv"
-        try {
-          Write-Output "Python that creates venv: $env:PYTHON_BIN"
-
-          Write-Output "Creating virtual environment"
-          if ( -Not (Invoke-Expression -Command "& '$env:PYTHON_BIN' -m virtualenv .step-security-publish-action-venv" 2> $null) -And -Not (Invoke-Expression -Command "& '$env:PYTHON_BIN' -m venv .step-security-publish-action-venv" 2> $null) ) {
-            Write-Output "Looks like there is neither virtualenv nor venv package installed"
-            if ( -Not (Invoke-Expression -Command "& '$env:PYTHON_BIN' -m pip --cache-dir .step-security-publish-action-pip install --user virtualenv" 2> $null) ) {
-              Write-Output "Installing virtualenv package with PIP option '--user' failed, now trying without"
-              if ( -Not (Invoke-Expression -Command "& '$env:PYTHON_BIN' -m pip --cache-dir .step-security-publish-action-pip install virtualenv" 2> $null) ) {
-                Write-Output "::error::Installing virtualenv package failed"
-                Exit 1
-              }
-            }
-
-            if ( -Not (Invoke-Expression -Command "& '$env:PYTHON_BIN' -m virtualenv .step-security-publish-action-venv" 2> $null) ) {
-              Write-Output "::error::Cannot create venv after installing virtualenv package"
-              Exit 1
-            }
-          }
-
-          Write-Output "Finding Python interpreter in venv"
-          $PYTHON_VENV = .step-security-publish-action-venv\Scripts\python -c "import sys; print(sys.executable)"
-          Write-Output "Python in venv: $PYTHON_VENV"
-          "PYTHON_VENV=$PYTHON_VENV" | Out-File -FilePath $env:GITHUB_ENV -Append
-        } finally {
-          Write-Output "::endgroup::"
-        }
-      shell: pwsh
-
-    - name: Install Python dependencies
-      run: |
-        # Install Python dependencies
-        Write-Output "::group::Install Python dependencies"
-        try {
-          Invoke-Expression -Command "& '$env:PYTHON_VENV' -m pip --cache-dir .step-security-publish-action-pip install -r '$env:GITHUB_ACTION_PATH\..\python\requirements-$env:DEPENDENCIES_VERSION.txt'"
-        } finally {
-          Write-Output "::endgroup::"
-        }
-      shell: pwsh
-
     - name: Publish Test Results
       id: test-results
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_GITHUB_RETRIES: ${{ inputs.github_retries }}
+        INPUT_SSL_VERIFY: ${{ inputs.ssl_verify }}
+        INPUT_COMMIT: ${{ inputs.commit }}
+        INPUT_CHECK_NAME: ${{ inputs.check_name }}
+        INPUT_COMMENT_TITLE: ${{ inputs.comment_title }}
+        INPUT_COMMENT_MODE: ${{ inputs.comment_mode }}
+        INPUT_FAIL_ON: ${{ inputs.fail_on }}
+        INPUT_ACTION_FAIL: ${{ inputs.action_fail }}
+        INPUT_ACTION_FAIL_ON_INCONCLUSIVE: ${{ inputs.action_fail_on_inconclusive }}
+        INPUT_FILES: ${{ inputs.files }}
+        INPUT_JUNIT_FILES: ${{ inputs.junit_files }}
+        INPUT_NUNIT_FILES: ${{ inputs.nunit_files }}
+        INPUT_XUNIT_FILES: ${{ inputs.xunit_files }}
+        INPUT_TRX_FILES: ${{ inputs.trx_files }}
+        INPUT_TIME_UNIT: ${{ inputs.time_unit }}
+        INPUT_TEST_FILE_PREFIX: ${{ inputs.test_file_prefix }}
+        INPUT_REPORT_INDIVIDUAL_RUNS: ${{ inputs.report_individual_runs }}
+        INPUT_REPORT_SUITE_LOGS: ${{ inputs.report_suite_logs }}
+        INPUT_DEDUPLICATE_CLASSES_BY_FILE_NAME: ${{ inputs.deduplicate_classes_by_file_name }}
+        INPUT_LARGE_FILES: ${{ inputs.large_files }}
+        INPUT_IGNORE_RUNS: ${{ inputs.ignore_runs }}
+        INPUT_CHECK_RUN: ${{ inputs.check_run }}
+        INPUT_JOB_SUMMARY: ${{ inputs.job_summary }}
+        INPUT_COMPARE_TO_EARLIER_COMMIT: ${{ inputs.compare_to_earlier_commit }}
+        INPUT_PULL_REQUEST_BUILD: ${{ inputs.pull_request_build }}
+        INPUT_EVENT_FILE: ${{ inputs.event_file }}
+        INPUT_EVENT_NAME: ${{ inputs.event_name }}
+        INPUT_TEST_CHANGES_LIMIT: ${{ inputs.test_changes_limit }}
+        INPUT_CHECK_RUN_ANNOTATIONS: ${{ inputs.check_run_annotations }}
+        INPUT_CHECK_RUN_ANNOTATIONS_BRANCH: ${{ inputs.check_run_annotations_branch }}
+        INPUT_SECONDS_BETWEEN_GITHUB_READS: ${{ inputs.seconds_between_github_reads }}
+        INPUT_SECONDS_BETWEEN_GITHUB_WRITES: ${{ inputs.seconds_between_github_writes }}
+        INPUT_SECONDARY_RATE_LIMIT_WAIT_SECONDS: ${{ inputs.secondary_rate_limit_wait_seconds }}
+        INPUT_JSON_FILE: ${{ inputs.json_file }}
+        INPUT_JSON_THOUSANDS_SEPARATOR: ${{ inputs.json_thousands_separator }}
+        INPUT_JSON_SUITE_DETAILS: ${{ inputs.json_suite_details }}
+        INPUT_JSON_TEST_CASE_RESULTS: ${{ inputs.json_test_case_results }}
+        INPUT_SEARCH_PULL_REQUESTS: ${{ inputs.search_pull_requests }}
+        # not documented
+        INPUT_LOG_LEVEL: ${{ inputs.log_level }}
+        # not documented
+        INPUT_ROOT_LOG_LEVEL: ${{ inputs.root_log_level }}
       run: |
         # Publish Test Results
-        Write-Output "::group::Publish Test Results"
-        try {
-          Invoke-Expression -Command "& '$env:PYTHON_VENV' '$env:GITHUB_ACTION_PATH\..\python\publish_test_results.py'"
-        } finally {
-          Write-Output "::endgroup::"
-        }
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-        GITHUB_RETRIES: ${{ inputs.github_retries }}
-        SSL_VERIFY: ${{ inputs.ssl_verify }}
-        COMMIT: ${{ inputs.commit }}
-        CHECK_NAME: ${{ inputs.check_name }}
-        COMMENT_TITLE: ${{ inputs.comment_title }}
-        COMMENT_MODE: ${{ inputs.comment_mode }}
-        FAIL_ON: ${{ inputs.fail_on }}
-        ACTION_FAIL: ${{ inputs.action_fail }}
-        ACTION_FAIL_ON_INCONCLUSIVE: ${{ inputs.action_fail_on_inconclusive }}
-        FILES: ${{ inputs.files }}
-        JUNIT_FILES: ${{ inputs.junit_files }}
-        NUNIT_FILES: ${{ inputs.nunit_files }}
-        XUNIT_FILES: ${{ inputs.xunit_files }}
-        TRX_FILES: ${{ inputs.trx_files }}
-        TIME_UNIT: ${{ inputs.time_unit }}
-        TEST_FILE_PREFIX: ${{ inputs.test_file_prefix }}
-        REPORT_INDIVIDUAL_RUNS: ${{ inputs.report_individual_runs }}
-        REPORT_SUITE_LOGS: ${{ inputs.report_suite_logs }}
-        DEDUPLICATE_CLASSES_BY_FILE_NAME: ${{ inputs.deduplicate_classes_by_file_name }}
-        LARGE_FILES: ${{ inputs.large_files }}
-        IGNORE_RUNS: ${{ inputs.ignore_runs }}
-        COMPARE_TO_EARLIER_COMMIT: ${{ inputs.compare_to_earlier_commit }}
-        PULL_REQUEST_BUILD: ${{ inputs.pull_request_build }}
-        EVENT_FILE: ${{ inputs.event_file }}
-        EVENT_NAME: ${{ inputs.event_name }}
-        TEST_CHANGES_LIMIT: ${{ inputs.test_changes_limit }}
-        CHECK_RUN_ANNOTATIONS: ${{ inputs.check_run_annotations }}
-        CHECK_RUN_ANNOTATIONS_BRANCH: ${{ inputs.check_run_annotations_branch }}
-        SECONDS_BETWEEN_GITHUB_READS: ${{ inputs.seconds_between_github_reads }}
-        SECONDS_BETWEEN_GITHUB_WRITES: ${{ inputs.seconds_between_github_writes }}
-        SECONDARY_RATE_LIMIT_WAIT_SECONDS: ${{ inputs.secondary_rate_limit_wait_seconds }}
-        JSON_FILE: ${{ inputs.json_file }}
-        JSON_THOUSANDS_SEPARATOR: ${{ inputs.json_thousands_separator }}
-        JSON_SUITE_DETAILS: ${{ inputs.json_suite_details }}
-        JSON_TEST_CASE_RESULTS: ${{ inputs.json_test_case_results }}
-        CHECK_RUN: ${{ inputs.check_run }}
-        JOB_SUMMARY: ${{ inputs.job_summary }}
-        SEARCH_PULL_REQUESTS: ${{ inputs.search_pull_requests }}
-        # not documented
-        ROOT_LOG_LEVEL: ${{ inputs.root_log_level }}
-        # not documented
-        LOG_LEVEL: ${{ inputs.log_level }}
-      shell: pwsh
-
-    - name: Save PIP packages cache
-      uses: actions/cache/save@v4
-      if: ( success() || failure() ) && ! steps.cache.outputs.cache-hit
-      continue-on-error: true
-      with:
-        path: .step-security-publish-action-pip
-        key: ${{ steps.cache.outputs.cache-primary-key }}
+        platform="${{ inputs.docker_platform }}"
+        docker run ${platform:+--platform $platform} \
+          --workdir "/github/workspace" \
+          --rm \
+          -e "INPUT_CHECK_NAME" \
+          -e "INPUT_JSON_FILE" \
+          -e "INPUT_JSON_SUITE_DETAILS" \
+          -e "INPUT_JSON_TEST_CASE_RESULTS" \
+          -e "INPUT_LOG_LEVEL" \
+          -e "INPUT_ROOT_LOG_LEVEL" \
+          -e "INPUT_GITHUB_TOKEN" \
+          -e "INPUT_GITHUB_RETRIES" \
+          -e "INPUT_SSL_VERIFY" \
+          -e "INPUT_COMMIT" \
+          -e "INPUT_COMMENT_TITLE" \
+          -e "INPUT_COMMENT_MODE" \
+          -e "INPUT_FAIL_ON" \
+          -e "INPUT_ACTION_FAIL" \
+          -e "INPUT_ACTION_FAIL_ON_INCONCLUSIVE" \
+          -e "INPUT_FILES" \
+          -e "INPUT_JUNIT_FILES" \
+          -e "INPUT_NUNIT_FILES" \
+          -e "INPUT_XUNIT_FILES" \
+          -e "INPUT_TRX_FILES" \
+          -e "INPUT_TIME_UNIT" \
+          -e "INPUT_TEST_FILE_PREFIX" \
+          -e "INPUT_REPORT_INDIVIDUAL_RUNS" \
+          -e "INPUT_REPORT_SUITE_LOGS" \
+          -e "INPUT_DEDUPLICATE_CLASSES_BY_FILE_NAME" \
+          -e "INPUT_LARGE_FILES" \
+          -e "INPUT_IGNORE_RUNS" \
+          -e "INPUT_CHECK_RUN" \
+          -e "INPUT_JOB_SUMMARY" \
+          -e "INPUT_COMPARE_TO_EARLIER_COMMIT" \
+          -e "INPUT_PULL_REQUEST_BUILD" \
+          -e "INPUT_EVENT_FILE" \
+          -e "INPUT_EVENT_NAME" \
+          -e "INPUT_TEST_CHANGES_LIMIT" \
+          -e "INPUT_CHECK_RUN_ANNOTATIONS" \
+          -e "INPUT_CHECK_RUN_ANNOTATIONS_BRANCH" \
+          -e "INPUT_SECONDS_BETWEEN_GITHUB_READS" \
+          -e "INPUT_SECONDS_BETWEEN_GITHUB_WRITES" \
+          -e "INPUT_SECONDARY_RATE_LIMIT_WAIT_SECONDS" \
+          -e "INPUT_JSON_THOUSANDS_SEPARATOR" \
+          -e "INPUT_SEARCH_PULL_REQUESTS" \
+          -e "HOME=/github/home" \
+          -e "GITHUB_JOB" \
+          -e "GITHUB_REF" \
+          -e "GITHUB_SHA" \
+          -e "GITHUB_REPOSITORY" \
+          -e "GITHUB_REPOSITORY_OWNER" \
+          -e "GITHUB_RUN_ID" \
+          -e "GITHUB_RUN_NUMBER" \
+          -e "GITHUB_RETENTION_DAYS" \
+          -e "GITHUB_RUN_ATTEMPT" \
+          -e "GITHUB_ACTOR" \
+          -e "GITHUB_TRIGGERING_ACTOR" \
+          -e "GITHUB_WORKFLOW" \
+          -e "GITHUB_HEAD_REF" \
+          -e "GITHUB_BASE_REF" \
+          -e "GITHUB_EVENT_NAME" \
+          -e "GITHUB_SERVER_URL" \
+          -e "GITHUB_API_URL" \
+          -e "GITHUB_GRAPHQL_URL" \
+          -e "GITHUB_REF_NAME" \
+          -e "GITHUB_REF_PROTECTED" \
+          -e "GITHUB_REF_TYPE" \
+          -e "GITHUB_WORKSPACE=/github/workspace" \
+          -e "GITHUB_ACTION" \
+          -e "GITHUB_EVENT_PATH" \
+          -e "GITHUB_ACTION_REPOSITORY" \
+          -e "GITHUB_ACTION_REF" \
+          -e "GITHUB_PATH" \
+          -e "GITHUB_ENV" \
+          -e "GITHUB_STEP_SUMMARY" \
+          -e "GITHUB_STATE" \
+          -e "GITHUB_OUTPUT" \
+          -e "RUNNER_OS" \
+          -e "RUNNER_ARCH" \
+          -e "RUNNER_NAME" \
+          -e "RUNNER_TOOL_CACHE" \
+          -e "RUNNER_TEMP" \
+          -e "RUNNER_WORKSPACE" \
+          -e "ACTIONS_RUNTIME_URL" \
+          -e "ACTIONS_RUNTIME_TOKEN" \
+          -e "ACTIONS_CACHE_URL" \
+          -e GITHUB_ACTIONS=true \
+          -e CI=true \
+          -v "$RUNNER_TEMP":"$RUNNER_TEMP" \
+          -v "/var/run/docker.sock":"/var/run/docker.sock" \
+          -v "/home/runner/work/_temp/_github_home":"/github/home" \
+          -v "$GITHUB_WORKSPACE":"/github/workspace" \
+          ${{ inputs.docker_registry }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
+      shell: bash
 
 branding:
   icon: 'check-circle'
