@@ -6,7 +6,8 @@ on:
       python-version:
         required: true
         type: string
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   check:
