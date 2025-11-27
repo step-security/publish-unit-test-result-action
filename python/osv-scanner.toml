@@ -17,3 +17,27 @@ id = "GHSA-48p4-8xcf-vxj5"
 
 [[IgnoredVulns]]
 id = "GHSA-pq67-6m6q-mj2v"
+
+[[IgnoredVulns]]
+id = "GHSA-55x5-fj6c-h6m8"
+reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-57qw-cc2g-pv5p"
+reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-jq4v-f5q6-mjqq"
+reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-pgww-xf46-h92r"
+reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-wrxv-2j5q-m38w"
+reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-xp26-p53h-6h2p"
+reason = "Version used is vuln free, false alert"
