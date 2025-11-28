@@ -7,8 +7,12 @@ on:
         required: true
         type: string
 
+permissions: {}
+
 jobs:
   check:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
     name: Check (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
