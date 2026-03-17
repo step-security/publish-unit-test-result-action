@@ -22,9 +22,9 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Check requirements.txt
         run: |
-          (diff -w <(grep -v -e "python_version >  '3.7'" -e "python_version == '3.8'" -e "python_version >  '3.8'" python/requirements.txt | sed -e "s/;.*//") python/requirements-3.7.txt || true) | (! grep -e "^<")
-          (diff -w <(grep -v -e "python_version <= '3.7'" -e "python_version >  '3.8'" python/requirements.txt | sed -e "s/;.*//") python/requirements-3.8.txt || true) | (! grep -e "^<")
-          (diff -w <(grep -v -e "python_version <= '3.7'" -e "python_version == '3.8'" python/requirements.txt | sed -e "s/;.*//") python/requirements-post-3.8.txt || true) | (! grep -e "^<")
+          (diff -w <(grep -v -e "python_version >  '3.7'" -e "python_version == '3.8'" -e "python_version >  '3.8'" -e "python_version == '3.9'" -e "python_version >  '3.9'" python/requirements.txt | sed -e "s/;.*//") python/requirements-3.7.txt || true) | (! grep -e "^<")
+          (diff -w <(grep -v -e "python_version <= '3.7'" -e "python_version >  '3.8'" -e "python_version == '3.9'" -e "python_version >  '3.9'" python/requirements.txt | sed -e "s/;.*//") python/requirements-3.8.txt || true) | (! grep -e "^<")
+          (diff -w <(grep -v -e "python_version <= '3.7'" -e "python_version == '3.8'" python/requirements.txt | sed -e "s/;.*//") <(sed -e "s/;.*//" python/requirements-post-3.8.txt) || true) | (! grep -e "^<")
         shell: bash
 
   upgrade:
