@@ -198,12 +198,12 @@ runs:
       shell: bash
 
     - name: Restore PIP packages cache
-      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 #v4.3.0
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       id: cache
       continue-on-error: true
       with:
         path: .step-security-publish-action-pip
-        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-cc226b680143b014d26e2c7e6eee8327
+        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-a5497e3be8fe59259cccb1cb1eb058c2
 
     - name: Create virtualenv
       id: venv
@@ -302,7 +302,7 @@ runs:
       shell: bash
 
     - name: Save PIP packages cache
-      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 #v4.3.0
+      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       if: ( success() || failure() ) && ! steps.cache.outputs.cache-hit
       continue-on-error: true
       with:

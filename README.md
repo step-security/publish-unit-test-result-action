@@ -546,10 +546,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -558,7 +558,7 @@ jobs:
 
       - name: Upload Test Results
         if: (!cancelled())
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: Test Results (Python ${{ matrix.python-version }})
           path: pytest.xml
@@ -582,7 +582,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         with:
           path: artifacts
 
@@ -623,7 +623,7 @@ event_file:
   runs-on: ubuntu-latest
   steps:
   - name: Upload
-    uses: actions/upload-artifact@v4
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
     with:
       name: Event File
       path: ${{ github.event_path }}
@@ -635,7 +635,7 @@ Adjust the value of `path` to fit your setup:
 ```yaml
 - name: Upload Test Results
   if: (!cancelled())
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
   with:
     name: Test Results
     path: |
@@ -693,7 +693,7 @@ jobs:
 
     steps:
       - name: Download and Extract Artifacts
-        uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d
+        uses: dawidd6/action-download-artifact@fe9d59ce33ce92db8a6ac90b2c8be6b6d90417c8  # v15
         with:
            run_id: ${{ github.event.workflow_run.id }}
            path: artifacts
@@ -788,7 +788,7 @@ steps:
     esac
 
 - name: Create badge
-  uses: emibcn/badge-action@808173dd03e2f30c980d03ee49e181626088eee8
+  uses: emibcn/badge-action@808173dd03e2f30c980d03ee49e181626088eee8  # v2.0.3
   with:
     label: Tests
     status: '${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results.outputs.json ).conclusion }}'
@@ -800,7 +800,7 @@ steps:
   if: >
     github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'master' ||
     github.event_name != 'workflow_run' && github.ref == 'refs/heads/master'
-  uses: andymckay/append-gist-action@6e8d64427fe47cbacf4ab6b890411f1d67c07f3e
+  uses: andymckay/append-gist-action@ab30bf28df67017c7ad696500b218558c7c04db3  # v0.3
   with:
     token: ${{ secrets.GIST_TOKEN }}
     gistURL: https://gist.githubusercontent.com/{user}/{id}
@@ -861,7 +861,7 @@ Self-hosted runners may require setting up a Python environment first:
 
 ```yaml
 - name: Setup Python
-  uses: actions/setup-python@v5
+  uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
   with:
     python-version: 3.8
 ```
