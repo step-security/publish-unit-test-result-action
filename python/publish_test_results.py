@@ -253,7 +253,10 @@ def validate_subscription():
     print("\033[1;36mStepSecurity Maintained Action\033[0m")
     print(f"Secure drop-in replacement for {upstream}")
     if repo_private is False:
-        print("\033[32m✓ Free for public repositories\033[0m")
+        try:
+            print("\033[32m✓ Free for public repositories\033[0m")
+        except UnicodeEncodeError:
+            print("\033[32mFree for public repositories\033[0m")
     print(f"\033[36mLearn more:\033[0m {docs_url}")
     print("")
 
