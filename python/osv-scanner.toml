@@ -41,3 +41,11 @@ reason = "Version used is vuln free, false alert"
 [[IgnoredVulns]]
 id = "GHSA-xp26-p53h-6h2p"
 reason = "Version used is vuln free, false alert"
+
+[[IgnoredVulns]]
+id = "GHSA-vfmq-68hx-4jfw"
+reason = "lxml 6.1.0 requires Python >= 3.8; residual vulnerable pin remains only in requirements-3.7.txt. Python 3.7 has reached EOL (June 2023) and cannot receive this fix."
+
+[[IgnoredVulns]]
+id = "GHSA-gc5v-m9x4-r6x2"
+reason = "requests 2.33.0 requires Python >= 3.10; residual vulnerable pins remain in requirements-3.7.txt, -3.8.txt, -3.9.txt (and the python_version=='3.9' marker in requirements-post-3.8.txt). Python 3.7 has reached EOL (June 2023); Python 3.8/3.9 still supported but cannot take the patched version."
