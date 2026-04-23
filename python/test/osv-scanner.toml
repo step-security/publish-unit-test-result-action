@@ -1,40 +1,12 @@
-# Not part of the build process, dependencies used for testing
+# Test-only dependencies (not shipped with the action).
+# Python-version markers in requirements.txt install the latest patched
+# version compatible with each interpreter. The entries below cover the
+# residual advisories whose fixes require a newer Python than 3.8/3.9.
 
 [[IgnoredVulns]]
-id = "PYSEC-2020-176"
+id = "GHSA-5239-wwwm-4pmq"
+reason = "pygments 2.20.0 fix requires Py >= 3.9. Py 3.8 runners install 2.19.2 (latest compat), which is unfixed for this advisory."
 
 [[IgnoredVulns]]
-id = "PYSEC-2020-96"
-
-[[IgnoredVulns]]
-id = "PYSEC-2021-142"
-
-[[IgnoredVulns]]
-id = "PYSEC-2018-66"
-
-[[IgnoredVulns]]
-id = "PYSEC-2019-179"
-
-[[IgnoredVulns]]
-id = "PYSEC-2019-179"
-
-[[IgnoredVulns]]
-id = "PYSEC-2023-62"
-
-[[IgnoredVulns]]
-id = "PYSEC-2014-14"
-
-[[IgnoredVulns]]
-id = "GHSA-9wx4-h78v-vm56"
-
-[[IgnoredVulns]]
-id = "PYSEC-2019-179"
-
-[[IgnoredVulns]]
-id = "PYSEC-2014-13"
-
-[[IgnoredVulns]]
-id = "PYSEC-2018-28"
-
-[[IgnoredVulns]]
-id = "GHSA-9hjg-9r4m-mvj7"
+id = "GHSA-gc5v-m9x4-r6x2"
+reason = "requests 2.33.0 fix requires Py >= 3.10. Py 3.8/3.9 runners install 2.32.4/2.32.5 (latest compat), which are unfixed for this advisory."

@@ -1,51 +1,76 @@
-# Not part of the build process, dependencies used for testing
+# Suppressions for residual vulnerabilities in EOL-Python lockfiles.
+# These cannot be fixed while supporting Py 3.7/3.8 because the patched
+# upstream versions require newer Python.
 
-[[IgnoredVulns]]
-id = "GHSA-9wx4-h78v-vm56"
-
-[[IgnoredVulns]]
-id = "GHSA-34jh-p97f-mpxf"
-
-[[IgnoredVulns]]
-id = "GHSA-jfmj-5v4g-7637"
-
-[[IgnoredVulns]]
-id = "GHSA-9hjg-9r4m-mvj7"
-
-[[IgnoredVulns]]
-id = "GHSA-48p4-8xcf-vxj5"
-
-[[IgnoredVulns]]
-id = "GHSA-pq67-6m6q-mj2v"
-
-[[IgnoredVulns]]
-id = "GHSA-55x5-fj6c-h6m8"
-reason = "Version used is vuln free, false alert"
-
-[[IgnoredVulns]]
-id = "GHSA-57qw-cc2g-pv5p"
-reason = "Version used is vuln free, false alert"
-
-[[IgnoredVulns]]
-id = "GHSA-jq4v-f5q6-mjqq"
-reason = "Version used is vuln free, false alert"
-
-[[IgnoredVulns]]
-id = "GHSA-pgww-xf46-h92r"
-reason = "Version used is vuln free, false alert"
-
-[[IgnoredVulns]]
-id = "GHSA-wrxv-2j5q-m38w"
-reason = "Version used is vuln free, false alert"
-
-[[IgnoredVulns]]
-id = "GHSA-xp26-p53h-6h2p"
-reason = "Version used is vuln free, false alert"
+# --- Python 3.7 pins (requirements-3.7.txt) — Py 3.7 EOL 2023-06 ---
 
 [[IgnoredVulns]]
 id = "GHSA-vfmq-68hx-4jfw"
-reason = "lxml 6.1.0 requires Python >= 3.8; residual vulnerable pin remains only in requirements-3.7.txt. Python 3.7 has reached EOL (June 2023) and cannot receive this fix."
+reason = "lxml 6.1.0 fix requires Py >= 3.8. Residual only in requirements-3.7.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-752w-5fwx-jx9f"
+reason = "pyjwt 2.12.0 fix requires Py >= 3.9 (pyjwt dropped 3.8 in 2.10.0). Residual in requirements-3.7.txt, -3.8.txt, and the transitive pin shown against requirements.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-mrfv-m5wm-5w6w"
+reason = "pynacl 1.6.2 fix requires Py >= 3.8. Residual only in requirements-3.7.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-9hjg-9r4m-mvj7"
+reason = "requests 2.32.4 fix not installable on Py 3.7. Residual only in requirements-3.7.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-9wx4-h78v-vm56"
+reason = "requests 2.32.0 fix not installable on Py 3.7. Residual only in requirements-3.7.txt."
 
 [[IgnoredVulns]]
 id = "GHSA-gc5v-m9x4-r6x2"
-reason = "requests 2.33.0 requires Python >= 3.10; residual vulnerable pins remain in requirements-3.7.txt, -3.8.txt, -3.9.txt (and the python_version=='3.9' marker in requirements-post-3.8.txt). Python 3.7 has reached EOL (June 2023); Python 3.8/3.9 still supported but cannot take the patched version."
+reason = "requests 2.33.0 fix requires Py >= 3.10. Residual in requirements-3.7.txt, -3.8.txt, -3.9.txt, and the Py 3.9 marker in requirements-post-3.8.txt."
+
+# urllib3: fixes 2.5.0+ dropped Py 3.8 support; that's why -3.8.txt is
+# pinned at 2.2.3 while -3.9.txt uses 2.6.3.
+
+[[IgnoredVulns]]
+id = "GHSA-2xpw-w6gg-jr37"
+reason = "urllib3 2.6.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt and -3.8.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-38jv-5279-wg99"
+reason = "urllib3 2.6.3 fix requires Py >= 3.9. Residual in requirements-3.7.txt and -3.8.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-gm62-xv2j-4w53"
+reason = "urllib3 2.6.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt and -3.8.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-34jh-p97f-mpxf"
+reason = "urllib3 2.2.2 fix not installable on Py 3.7. Residual only in requirements-3.7.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-pq67-6m6q-mj2v"
+reason = "urllib3 2.5.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt and -3.8.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-48p4-8xcf-vxj5"
+reason = "urllib3 2.5.0 fix requires Py >= 3.9. Residual only in requirements-3.8.txt."
+
+[[IgnoredVulns]]
+id = "GHSA-jfmj-5v4g-7637"
+reason = "zipp 3.19.1 fix not installable on Py 3.7. Residual only in requirements-3.7.txt."
+
+# cryptography: not directly pinned anywhere — osv-scanner's transitive
+# resolver surfaces 45.0.7 against requirements-3.7.txt. Py 3.7 cannot
+# take cryptography 46.x; a Py-3.7-compat pin would itself be unpatched.
+
+[[IgnoredVulns]]
+id = "GHSA-m959-cc7f-wv43"
+reason = "cryptography 46.0.6 fix requires Py >= 3.8. Transitive resolution artifact against requirements-3.7.txt; package is not directly pinned."
+
+[[IgnoredVulns]]
+id = "GHSA-p423-j2cm-9vmq"
+reason = "cryptography 46.0.7 fix requires Py >= 3.8. Transitive resolution artifact against requirements-3.7.txt; package is not directly pinned."
+
+[[IgnoredVulns]]
+id = "GHSA-r6ph-v2qm-q3c2"
+reason = "cryptography 46.0.5 fix requires Py >= 3.8. Transitive resolution artifact against requirements-3.7.txt; package is not directly pinned."
