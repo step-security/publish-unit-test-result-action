@@ -74,3 +74,52 @@ reason = "cryptography 46.0.7 fix requires Py >= 3.8. Transitive resolution arti
 [[IgnoredVulns]]
 id = "GHSA-r6ph-v2qm-q3c2"
 reason = "cryptography 46.0.5 fix requires Py >= 3.8. Transitive resolution artifact against requirements-3.7.txt; package is not directly pinned."
+
+[[IgnoredVulns]]
+id = "GHSA-537c-gmf6-5ccf"
+reason = "cryptography 48.0.1 fix requires Py >= 3.9. Transitive resolution artifact against requirements-3.7.txt; package is not directly pinned."
+
+# --- idna ---
+
+[[IgnoredVulns]]
+id = "GHSA-65pc-fj4g-8rjx"
+reason = "idna 3.15 fix requires Py >= 3.8. Residual only in requirements-3.7.txt."
+
+# --- pyjwt: new batch of CVEs (2025-2026) ---
+# PyJWT dropped Py 3.7 in 2.9.0 and Py 3.8 in 2.10.0; fix versions 2.12.1/2.13.0
+# all require Py >= 3.9, so 3.7 and 3.8 lockfiles cannot be upgraded.
+
+[[IgnoredVulns]]
+id = "PYSEC-2025-183"
+reason = "PyJWT vuln with no published fix version. Residual in requirements-3.7.txt and -3.8.txt; no PyJWT release addresses this on Py < 3.9."
+
+[[IgnoredVulns]]
+id = "GHSA-993g-76c3-p5m4"
+reason = "pyjwt 2.13.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt (2.8.0) and -3.8.txt (2.9.0)."
+
+[[IgnoredVulns]]
+id = "GHSA-jq35-7prp-9v3f"
+reason = "pyjwt 2.12.1 fix requires Py >= 3.9. Residual only in requirements-3.8.txt (2.9.0)."
+
+[[IgnoredVulns]]
+id = "GHSA-fhv5-28vv-h8m8"
+reason = "pyjwt 2.13.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt (2.8.0) and -3.8.txt (2.9.0)."
+
+[[IgnoredVulns]]
+id = "GHSA-w7vc-732c-9m39"
+reason = "pyjwt 2.13.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt (2.8.0) and -3.8.txt (2.9.0)."
+
+[[IgnoredVulns]]
+id = "GHSA-xgmm-8j9v-c9wx"
+reason = "pyjwt 2.13.0 fix requires Py >= 3.9. Residual in requirements-3.7.txt (2.8.0) and -3.8.txt (2.9.0)."
+
+# --- urllib3: new vulns fixed in 2.7.0 which requires Py >= 3.10 ---
+# requirements-3.9.txt is pinned at 2.6.3 (the max for Py 3.9); 2.7.0 requires Py >= 3.10.
+
+[[IgnoredVulns]]
+id = "GHSA-qccp-gfcp-xxvc"
+reason = "urllib3 2.7.0 fix requires Py >= 3.10. Residual in requirements-3.7.txt (2.0.7), -3.8.txt (2.2.3), and -3.9.txt (2.6.3)."
+
+[[IgnoredVulns]]
+id = "GHSA-mf9v-mfxr-j63j"
+reason = "urllib3 2.7.0 fix requires Py >= 3.10. Residual only in requirements-3.9.txt (2.6.3)."
