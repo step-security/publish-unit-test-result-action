@@ -188,8 +188,10 @@ runs:
             "DEPENDENCIES_VERSION=3.7" | Out-File -FilePath $env:GITHUB_ENV -Append
           } elseif ( $PYTHON_VERSION -eq "3.8" ) {
             "DEPENDENCIES_VERSION=3.8" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } elseif ( $PYTHON_VERSION -eq "3.9" ) {
+            "DEPENDENCIES_VERSION=3.9" | Out-File -FilePath $env:GITHUB_ENV -Append
           } else {
-            "DEPENDENCIES_VERSION=post-3.8" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "DEPENDENCIES_VERSION=post-3.9" | Out-File -FilePath $env:GITHUB_ENV -Append
           }
           "version=$PYTHON_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         } finally {
@@ -198,12 +200,12 @@ runs:
       shell: pwsh
 
     - name: Restore PIP packages cache
-      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       id: cache
       continue-on-error: true
       with:
         path: .step-security-publish-action-pip
-        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-d9f24f17bf5117ba144e7aff147d94c2
+        key: step-security-publish-action-pip-${{ runner.os }}-${{ runner.arch }}-${{ steps.python.outputs.version }}-68522748e1f6be59932663d60e323a39
 
     - name: Create virtualenv
       id: venv
@@ -308,7 +310,7 @@ runs:
       shell: pwsh
 
     - name: Save PIP packages cache
-      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       if: ( success() || failure() ) && ! steps.cache.outputs.cache-hit
       continue-on-error: true
       with:

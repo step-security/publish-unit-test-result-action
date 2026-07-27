@@ -161,8 +161,8 @@ jobs:
           - os: ubuntu-latest
             os-label: Linux
             python: "installed"
-          - os: ubuntu-24.04
-            os-label: Linux 24.04
+          - os: ubuntu-22.04
+            os-label: Linux 22.04
             python: "installed"
 
     steps:
@@ -225,6 +225,12 @@ jobs:
             python: "venv"
           - os: macos-latest
             os-label: macOS
+            python: "installed"
+          - os: macos-14
+            os-label: macOS 14
+            python: "installed"
+          - os: macos-26
+            os-label: macOS 26
             python: "installed"
 
     steps:
@@ -290,10 +296,13 @@ jobs:
         include:
           - os: windows-latest
             os-label: Windows
-            python: "installed"
+            python: "venv"
           - os: windows-latest
             os-label: Windows
-            python: "venv"
+            python: "installed"
+          - os: windows-2022
+            os-label: Windows 2022
+            python: "installed"
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
