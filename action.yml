@@ -157,7 +157,7 @@ outputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/step-security/publish-unit-test-result-action:v2.24.0'
+  image: 'docker://ghcr.io/step-security/publish-unit-test-result-action:v2.24.0@sha256:1d48deb73d31e4f3a7afa9ff5f3f3df8f186a84065f834e06d11653d30fa20fe' # v2.24.0
 
 branding:
   icon: 'check-circle'
